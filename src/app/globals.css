@@ -1,0 +1,32 @@
+@import "tailwindcss";
+@import "@fontsource-variable/noto-sans-devanagari";
+
+@theme {
+  --font-sans: "Noto Sans Devanagari Variable", "Noto Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --color-brand-50: #eefaf2;
+  --color-brand-100: #d6f3df;
+  --color-brand-200: #aee6c1;
+  --color-brand-500: #1a9c53;
+  --color-brand-600: #0f8043;
+  --color-brand-700: #0b6636;
+  --color-brand-800: #0a4f2b;
+  --color-ink: #10201a;
+  --color-muted: #55635c;
+  --color-line: #dfe5e1;
+  --color-due: #8a4b00;
+  --color-due-bg: #fff4dd;
+}
+
+html { font-size: 17px; -webkit-text-size-adjust: 100%; }
+body { background: #fff; color: var(--color-ink); font-family: var(--font-sans); line-height: 1.5; }
+input, select, textarea, button { font: inherit; }
+/* Amounts line up and never reflow between languages. */
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+:focus-visible { outline: 3px solid var(--color-brand-500); outline-offset: 2px; border-radius: 6px; }
+
+@media print {
+  .no-print { display: none !important; }
+  body { font-size: 12pt; }
+  .print-area { border: 0 !important; box-shadow: none !important; max-width: 80mm; margin: 0 auto; padding: 0 !important; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

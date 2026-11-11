@@ -1,0 +1,43 @@
+{
+  "name": "super-kirana",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Super Kirana, Niphad — Marathi-first multi-shop kirana billing and khata app",
+  "scripts": {
+    "dev": "next dev",
+    "prebuild": "node scripts/copy-ocr-assets.mjs",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run tests/unit",
+    "test:db": "tests/harness/reset-db.sh && vitest run tests/db",
+    "test:e2e": "mkdir -p .e2e && tests/harness/e2e.sh",
+    "test:all": "npm run typecheck && npm run test && npm run test:db && npm run test:e2e"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@fontsource-variable/noto-sans-devanagari": "^5.3.0",
+    "@supabase/supabase-js": "^2.119.0",
+    "@tesseract.js-data/eng": "^1.0.0",
+    "@tesseract.js-data/mar": "^1.0.0",
+    "next": "^16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tesseract.js": "^7.0.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/postcss": "^4.3.5",
+    "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "pg": "^8.23.1",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

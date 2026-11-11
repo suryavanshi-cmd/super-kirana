@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+public/ocr
+.env
+.env.local
+.env.*.local
+test-results
+playwright-report
+*.tsbuildinfo
+next-env.d.ts
+.vercel
+.e2e
