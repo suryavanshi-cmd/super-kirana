@@ -20,3 +20,5 @@ grant execute on function auth.uid() to anon, authenticated, service_role;
 grant usage on schema public to anon, authenticated, service_role;
 alter default privileges in schema public grant all on tables to service_role;
 alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
+create schema if not exists vault;
+create table if not exists vault.decrypted_secrets (name text, decrypted_secret text, created_at timestamptz default now());

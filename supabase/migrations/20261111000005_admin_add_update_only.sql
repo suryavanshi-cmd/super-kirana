@@ -123,3 +123,12 @@ revoke execute on function public.admin_update_shop(uuid, text, text, text), pub
   from public, anon;
 grant execute on function public.admin_update_shop(uuid, text, text, text), public.admin_update_member(uuid, uuid, text, text, text)
   to authenticated;
+
+-- OCR.space key: stored encrypted in Supabase Vault (name `ocr_space_api_key`, added outside the
+-- repo), readable only by the service role that the `ocr` edge function uses.
+create or replace function public.svc_ocr_key()
+returns text language sql stable security definer set search_path = '' as $$
+  select s.decrypted_secret from vault.decrypted_secrets s where s.name = 'ocr_space_api_key' order by s.created_at desc limit 1;
+$$;
+revoke execute on function public.svc_ocr_key() from public, anon, authenticated;
+grant execute on function public.svc_ocr_key() to service_role;
