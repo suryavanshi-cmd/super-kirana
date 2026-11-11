@@ -125,7 +125,7 @@ function BillScreen() {
 
   return (
     <div>
-      <PageHeader title={t('bill.title')}
+      <PageHeader title={t('bill.title')} back="/home"
         action={draft.lines.length > 0 && !pending ? <Button variant="ghost" onClick={() => setClearing(true)}>{t('bill.clear')}</Button> : undefined} />
       {pending && <UnknownOutcome pending={pending} scope={scope} onConfirmed={done} onFailed={onFailed} />}
       {!pending && (

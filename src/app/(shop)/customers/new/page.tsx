@@ -10,7 +10,7 @@ export default function NewCustomerPage() {
   const toast = useToast();
   return (
     <div>
-      <PageHeader title={t('cust.new')} back="/customers" />
+      <PageHeader title={t('cust.new')} back="/home" />
       <CustomerForm onSaved={(id) => { toast(t('cust.created')); router.replace(`/customers/${id}`); }} />
     </div>
   );

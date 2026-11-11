@@ -12,13 +12,14 @@ Supabase backend serve many independent shops; each shop's data is isolated in t
 | Area | Status |
 | --- | --- |
 | Login with username + password, forced password change, generic errors, rate limiting | Working, tested |
-| Multiple shops, owner / cashier roles, platform admin (create, suspend, open any shop, manage staff) | Working, tested |
+| Simple shop screen: **उधारी नोंदवा** and **फोटोवरून बिल**, plus the list of who owes what | Working, tested |
+| Multiple shops, owner / cashier roles; admin can only **add and update** shops and people, never sees money | Working, tested |
 | Customers, opening balance, products with units and fractional quantities | Working, tested |
 | Billing: full / partial / zero payment, old-dues split, walk-in must settle | Working, tested |
 | Collecting old dues (oldest first), receipts, reversals, returns / credits | Working, tested |
 | Home dashboard, daily / range reports, outstanding report, cash vs UPI, CSV, print, share | Working, tested |
-| Scan a list: on-device OCR for printed Marathi / English, typed list, review screen | Working, tested with printed text |
-| Cloud OCR for handwriting (Google Cloud Vision) | Code deployed, **switched off and untested** — needs an API key |
+| Scan a list with OCR.space (Engine 3 handwriting, Engine 2 fallback), review every line | Working, tested against a stand-in; real accuracy depends on the photo |
+| On-device OCR when OCR.space is unreachable (printed text only) | Working, tested |
 | Offline: cached lists, bill drafts, sync-status screen | Working, tested |
 | Offline **posting** of bills / payments | Deliberately not built — posting needs a connection |
 | Email / SMS password reset | Not built — recovery is by owner or admin |
@@ -55,7 +56,7 @@ adds sample products and customers.
 
 1. **Supabase** — create a project, run the four files in `supabase/migrations/` in order
    (`supabase db push`, or paste them in the SQL editor), then deploy both edge functions:
-   `supabase functions deploy auth-admin --no-verify-jwt` and `supabase functions deploy ocr-vision --no-verify-jwt`
+   `supabase functions deploy auth-admin --no-verify-jwt` and `supabase functions deploy ocr --no-verify-jwt`
    (both check the caller themselves).
 2. **First admin** — store the hash of a one-time setup code, then open `/setup` in the app:
    ```sql
@@ -67,7 +68,7 @@ adds sample products and customers.
 3. **Vercel** — import the repository and set two environment variables:
    `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Nothing secret goes to Vercel.
 4. Optional: set the edge-function secret `APP_ORIGIN` to your site URL to restrict browser
-   origins, and `GOOGLE_VISION_API_KEY` to switch on cloud OCR.
+   origins, and `OCR_SPACE_API_KEY` (from ocr.space) to switch on cloud OCR.
 
 Use a separate Supabase project for testing; never point a test build at the production project.
 

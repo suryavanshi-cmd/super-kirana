@@ -162,33 +162,48 @@ describe('roles, sessions and status', () => {
     expect(ctx.shops).toEqual([]);
   });
 
-  it('a suspended shop is closed to its members; an admin can still read it but nobody can post', async () => {
+  it('a suspended shop is closed to its members at once, and reopens when the admin updates it', async () => {
     const s = await makeShop();
     const adm = await makeUser('adm');
     await admin(`insert into public.platform_admins(user_id) values ($1)`, [adm]);
-    expect(await rpcError(s.owner, 'admin_set_shop_status', { p_shop_id: s.shop, p_status: 'suspended' })).toBe('ADMIN_ONLY');
-    await rpc(adm, 'admin_set_shop_status', { p_shop_id: s.shop, p_status: 'suspended' });
+    expect(await rpcError(s.owner, 'admin_update_shop', { p_shop_id: s.shop, p_name_mr: 'x', p_name_en: 'x', p_status: 'suspended' })).toBe('ADMIN_ONLY');
+    await rpc(adm, 'admin_update_shop', { p_shop_id: s.shop, p_name_mr: 'चाचणी दुकान', p_name_en: 'Test Shop', p_status: 'suspended' });
     expect(await rpcError(s.owner, 'list_customers', { p_shop_id: s.shop })).toBe('FORBIDDEN');
-    expect(await rpc(adm, 'list_customers', { p_shop_id: s.shop })).toEqual([]);
-    expect(await rpcError(adm, 'create_invoice', { p_shop_id: s.shop, p_idempotency_key: key(), p_customer_id: null, p_items: [item('1', 'piece', 100)], p_paid_paise: 100 })).toBe('SHOP_SUSPENDED');
-    await rpc(adm, 'admin_set_shop_status', { p_shop_id: s.shop, p_status: 'active' });
+    expect(await rpcError(s.cashier, 'create_invoice', { p_shop_id: s.shop, p_idempotency_key: key(), p_customer_id: null, p_items: [item('1', 'piece', 100)], p_paid_paise: 100 })).toBe('FORBIDDEN');
+    await rpc(adm, 'admin_update_shop', { p_shop_id: s.shop, p_name_mr: 'चाचणी दुकान', p_name_en: 'Test Shop', p_status: 'active' });
     expect(await rpc(s.owner, 'list_customers', { p_shop_id: s.shop })).toEqual([]);
   });
 
-  it('a platform admin can work in every shop; ordinary owners cannot use admin functions', async () => {
+  it('the admin can add and update shops and people but cannot see or touch any shop money', async () => {
     const adm = await makeUser('adm');
     await admin(`insert into public.platform_admins(user_id) values ($1)`, [adm]);
     const ctx = await rpc(adm, 'my_context');
     expect(ctx.is_platform_admin).toBe(true);
-    expect(ctx.shops.map((s: any) => s.id)).toEqual(expect.arrayContaining([a.shop, b.shop]));
-    const r = await bill(a, adm, custA, 5000, 5000);
-    await rpc(adm, 'reverse_invoice', { p_shop_id: a.shop, p_idempotency_key: key(), p_invoice_id: r.invoice_id, p_reason: 'admin test' });
-    expect((await rpc(adm, 'admin_list_shops')).length).toBeGreaterThanOrEqual(2);
-    expect(await rpcError(a.owner, 'admin_list_shops')).toBe('ADMIN_ONLY');
-    expect(await rpcError(a.owner, 'admin_list_audit')).toBe('ADMIN_ONLY');
+    expect(ctx.shops).toEqual([]);                                   // not a member of any shop
+    const shops = await rpc(adm, 'admin_list_shops');
+    const listedA = shops.find((x: any) => x.id === a.shop);
+    expect(listedA.members.map((m: any) => m.role).sort()).toEqual(['cashier', 'owner']);
+    expect(JSON.stringify(shops)).not.toMatch(/paise|balance/);       // no money in the admin view
+    for (const [fn, args] of [
+      ['list_customers', { p_shop_id: a.shop }], ['get_customer', { p_shop_id: a.shop, p_customer_id: custA }],
+      ['get_shop_daily_summary', { p_shop_id: a.shop }], ['list_members', { p_shop_id: a.shop }],
+      ['receive_payment', { p_shop_id: a.shop, p_idempotency_key: key(), p_customer_id: custA, p_amount_paise: 100 }],
+      ['reverse_invoice', { p_shop_id: b.shop, p_idempotency_key: key(), p_invoice_id: invB, p_reason: 'admin test' }],
+    ] as const) {
+      expect(await rpcError(adm, fn, args), fn).toBe('FORBIDDEN');
+    }
+    expect(await rpcError(adm, 'create_invoice', { p_shop_id: a.shop, p_idempotency_key: key(), p_customer_id: null, p_items: [item('1', 'piece', 100)], p_paid_paise: 100 })).toBe('FORBIDDEN');
     await withUser(adm, async (c) => {
-      expect((await c.query(`select count(*)::int n from public.customers where shop_id = $1`, [b.shop])).rows[0].n).toBe(1);
+      for (const t of ['customers', 'invoices', 'payments', 'ledger_entries']) {
+        expect((await c.query(`select count(*)::int n from public.${t}`)).rows[0].n, t).toBe(0);
+      }
     });
+    expect(await rpcError(adm, 'admin_set_shop_status', { p_shop_id: a.shop, p_status: 'suspended' })).toMatch(/permission denied/);
+    expect(await rpcError(adm, 'admin_list_audit')).toMatch(/permission denied/);
+    expect(await rpcError(a.owner, 'admin_list_shops')).toBe('ADMIN_ONLY');
+    expect(await rpcError(a.owner, 'admin_update_member', { p_shop_id: a.shop, p_user_id: a.cashier, p_display_name: 'x', p_role: 'owner', p_status: 'active' })).toBe('ADMIN_ONLY');
+    await rpc(adm, 'admin_update_member', { p_shop_id: a.shop, p_user_id: a.owner, p_display_name: 'नवीन नाव', p_role: 'owner', p_status: 'active' });
+    expect((await rpc(adm, 'admin_list_shops')).find((x: any) => x.id === a.shop).members.find((m: any) => m.user_id === a.owner).display_name).toBe('नवीन नाव');
   });
 
   it('cashier limits: no products, no customer edits, no staff, no audit, no past-day reports', async () => {
@@ -213,9 +228,12 @@ describe('roles, sessions and status', () => {
     await admin(`insert into public.platform_admins(user_id) values ($1)`, [adm]);
     expect(await rpcError(s.owner, 'set_member', { p_shop_id: s.shop, p_user_id: s.cashier, p_role: 'owner', p_status: 'active' })).toBe('ADMIN_ONLY');
     expect(await rpcError(s.owner, 'set_member', { p_shop_id: s.shop, p_user_id: s.owner, p_role: 'owner', p_status: 'disabled' })).toBe('ADMIN_ONLY');
-    expect(await rpcError(adm, 'set_member', { p_shop_id: s.shop, p_user_id: s.owner, p_role: 'cashier', p_status: 'active' })).toBe('LAST_OWNER');
-    await rpc(adm, 'set_member', { p_shop_id: s.shop, p_user_id: s.cashier, p_role: 'owner', p_status: 'active' });
-    await rpc(adm, 'set_member', { p_shop_id: s.shop, p_user_id: s.owner, p_role: 'owner', p_status: 'disabled' });
+    const upd = (user: string, role: string, status: string) => ({ p_shop_id: s.shop, p_user_id: user, p_display_name: 'नाव', p_role: role, p_status: status });
+    expect(await rpcError(adm, 'admin_update_member', upd(s.owner, 'cashier', 'active'))).toBe('LAST_OWNER');
+    expect(await rpcError(adm, 'admin_update_member', upd(s.owner, 'owner', 'disabled'))).toBe('LAST_OWNER');
+    await rpc(adm, 'admin_update_member', upd(s.cashier, 'owner', 'active'));
+    await rpc(adm, 'admin_update_member', upd(s.owner, 'owner', 'disabled'));
+    expect(await rpcError(s.owner, 'list_customers', { p_shop_id: s.shop })).toBe('FORBIDDEN');
     const n = await admin(`select count(*)::int n from public.audit_events where shop_id = $1 and action = 'member.updated'`, [s.shop]);
     expect(n.rows[0].n).toBe(2);
   });

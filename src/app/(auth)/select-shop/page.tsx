@@ -9,7 +9,11 @@ export default function SelectShopPage() {
   const { t, locale } = useI18n();
   const { status, ctx, selectShop, signOut } = useSession();
   const router = useRouter();
-  useEffect(() => { if (status === 'signedOut') router.replace('/login'); }, [status, router]);
+  useEffect(() => {
+    if (status === 'signedOut') router.replace('/login');
+    // An admin who is not a member of any shop goes straight to the admin page.
+    if (status === 'ready' && ctx?.is_platform_admin && !ctx.must_change_password && ctx.shops.length === 0) router.replace('/admin');
+  }, [status, ctx, router]);
   if (status !== 'ready' || !ctx) return <Skeleton />;
   return (
     <div>

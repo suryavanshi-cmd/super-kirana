@@ -35,10 +35,10 @@ export default function CustomerPage() {
     finally { setBusy(false); }
   }
 
-  if (!c) return <div><PageHeader title={t('cust.details')} back="/customers" />{q.loading ? <Skeleton lines={4} /> : <ErrorBox error={q.error} onRetry={q.reload} />}</div>;
+  if (!c) return <div><PageHeader title={t('cust.details')} back="/home" />{q.loading ? <Skeleton lines={4} /> : <ErrorBox error={q.error} onRetry={q.reload} />}</div>;
   return (
     <div>
-      <PageHeader title={c.name} back="/customers"
+      <PageHeader title={c.name} back="/home"
         action={isOwner && <Button variant="ghost" onClick={() => setEditing(true)}>{t('c.edit')}</Button>} />
       <StaleNote show={q.stale} />
       {!c.is_active && <Notice tone="warn">{t('cust.inactiveNote')}</Notice>}
@@ -52,7 +52,7 @@ export default function CustomerPage() {
       </Card>
       {!c.reconciled && <Notice tone="warn">{t('cust.mismatch')}</Notice>}
       <div className="mt-4 grid grid-cols-2 gap-3">
-        {c.is_active ? <LinkButton href={`/bill?customer=${c.id}`}><Icon name="plus" className="h-5 w-5" />{t('home.newBill')}</LinkButton> : <Button disabled>{t('home.newBill')}</Button>}
+        {c.is_active ? <LinkButton href={`/udhari?customer=${c.id}`}><Icon name="plus" className="h-5 w-5" />{t('home.udhari')}</LinkButton> : <Button disabled>{t('home.udhari')}</Button>}
         {c.balance_paise > 0 ? <LinkButton href={`/customers/${c.id}/pay`} variant="secondary"><Icon name="rupee" className="h-5 w-5" />{t('home.receive')}</LinkButton> : <Button variant="secondary" disabled>{t('home.receive')}</Button>}
         <LinkButton href={`/customers/${c.id}/ledger`} variant="secondary"><Icon name="list" className="h-5 w-5" />{t('cust.history')}</LinkButton>
         <LinkButton href={`/customers/${c.id}/ledger?share=1`} variant="secondary"><Icon name="share" className="h-5 w-5" />{t('cust.shareStatement')}</LinkButton>

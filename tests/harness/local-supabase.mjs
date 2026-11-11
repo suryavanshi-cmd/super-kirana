@@ -112,7 +112,24 @@ async function auth(req, res, url) {
   send(res, 404, { msg: 'not found' });
 }
 
-const FUNCTIONS = { 'auth-admin': PORT + 10, 'ocr-vision': PORT + 11 };
+const FUNCTIONS = { 'auth-admin': PORT + 10, 'ocr': PORT + 11 };
+const FAKE_OCR_PORT = PORT + 20;
+export const FAKE_OCR_KEY = 'test-ocr-key';
+// Stand-in for api.ocr.space: checks the request the way the real API would and returns a fixed
+// handwritten-style list, so the whole cloud OCR path is exercised without the internet.
+export const FAKE_OCR_TEXT = 'साखर 2 किलो\t\r\nतेल 1 लिटर 140\t\r\nबिस्किट 3 पाकीट\t\r\n';
+function startFakeOcr() {
+  return http.createServer((req, res) => {
+    let body = '';
+    req.on('data', (c) => (body += c));
+    req.on('end', () => {
+      const ok = req.headers.apikey === FAKE_OCR_KEY && body.includes('data:image/') && /name="OCREngine"\r\n\r\n3/.test(body);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(ok ? { ParsedResults: [{ ParsedText: FAKE_OCR_TEXT }], IsErroredOnProcessing: false, OCRExitCode: 1 }
+        : { IsErroredOnProcessing: true, ErrorMessage: ['bad request'], OCRExitCode: 99 }));
+    });
+  }).listen(FAKE_OCR_PORT, '127.0.0.1');
+}
 function proxyFunction(req, res, name) {
   if (req.method === 'OPTIONS') return send(res, 200, {});
   const out = http.request({ host: '127.0.0.1', port: FUNCTIONS[name], path: '/', method: req.method,
@@ -129,7 +146,9 @@ export function start() {
   const children = Object.entries(FUNCTIONS).map(([name, port]) => spawn(deno,
     ['run', '--allow-net', '--allow-env', '--quiet', path.join(root, 'supabase/functions', name, 'index.ts')],
     { env: { ...process.env, SUPABASE_URL: `http://127.0.0.1:${PORT}`, SUPABASE_ANON_KEY: ANON_KEY, SUPABASE_SERVICE_ROLE_KEY: SERVICE_KEY,
-        DENO_SERVE_ADDRESS: `tcp:127.0.0.1:${port}`, NO_PROXY: '127.0.0.1,localhost,registry.npmjs.org', GOOGLE_VISION_API_KEY: '' }, stdio: ['ignore', 'inherit', 'inherit'] }));
+        DENO_SERVE_ADDRESS: `tcp:127.0.0.1:${port}`, NO_PROXY: '127.0.0.1,localhost,registry.npmjs.org',
+        OCR_SPACE_API_KEY: FAKE_OCR_KEY, OCR_SPACE_URL: `http://127.0.0.1:${FAKE_OCR_PORT}/parse/image` }, stdio: ['ignore', 'inherit', 'inherit'] }));
+  const fakeOcr = startFakeOcr();
   const server = http.createServer((req, res) => {
     const url = new URL(req.url, `http://127.0.0.1:${PORT}`);
     if (req.method === 'OPTIONS' && !url.pathname.startsWith('/functions/')) return send(res, 200, {});
@@ -142,7 +161,7 @@ export function start() {
     send(res, 404, { message: 'not found' });
   });
   server.listen(PORT, '127.0.0.1');
-  const stop = () => { children.forEach((c) => c.kill()); server.close(); pool.end(); };
+  const stop = () => { children.forEach((c) => c.kill()); server.close(); fakeOcr.close(); pool.end(); };
   process.on('SIGTERM', () => { stop(); process.exit(0); });
   process.on('SIGINT', () => { stop(); process.exit(0); });
   return { stop, url: `http://127.0.0.1:${PORT}` };

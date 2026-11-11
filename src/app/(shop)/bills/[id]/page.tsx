@@ -42,7 +42,7 @@ export default function BillReceiptPage() {
   }
   return (
     <div>
-      <PageHeader title={t('bill.receipt')} back={b.customer_id ? `/customers/${b.customer_id}` : '/home'} />
+      <PageHeader title={t('bill.receipt')} back="/home" />
       {reversed && <Notice tone="warn" icon="x"><b>{t('bill.reversed')}</b>{b.reversal_reason ? ` — ${b.reversal_reason}` : ''}</Notice>}
       <article className="print-area rounded-2xl border border-line p-4" data-testid="receipt">
         <header className="border-b border-dashed border-slate-400 pb-3 text-center">
@@ -57,7 +57,7 @@ export default function BillReceiptPage() {
             {b.items.map((it) => (
               <tr key={it.line_no} className="border-t border-line align-top">
                 <td className="py-1.5"><span className="font-semibold">{it.name}</span>
-                  <span className="num block text-muted">{it.qty} {t(`unit.${it.unit}`)} × {formatPaise(it.unit_price_paise)}/{t(`unit.${it.price_unit}`)}{it.discount_paise > 0 ? ` − ${t('bill.discount')} ${formatPaise(it.discount_paise)}` : ''}</span></td>
+                  {!(Number(it.qty) === 1 && it.unit === 'piece' && it.price_unit === 'piece' && it.discount_paise === 0) && <span className="num block text-muted">{it.qty} {t(`unit.${it.unit}`)} × {formatPaise(it.unit_price_paise)}/{t(`unit.${it.price_unit}`)}{it.discount_paise > 0 ? ` − ${t('bill.discount')} ${formatPaise(it.discount_paise)}` : ''}</span>}</td>
                 <td className="num py-1.5 text-right font-semibold">{formatPaise(it.line_total_paise)}</td>
               </tr>
             ))}
@@ -83,7 +83,7 @@ export default function BillReceiptPage() {
       <div className="no-print mt-4 grid grid-cols-2 gap-3">
         <Button variant="secondary" onClick={() => window.print()}><Icon name="print" className="h-5 w-5" />{t('c.print')}</Button>
         <Button variant="secondary" onClick={async () => { if ((await shareText(shopName, receiptText())) === 'copied') toast(t('c.copied')); }}><Icon name="share" className="h-5 w-5" />{t('c.share')}</Button>
-        <LinkButton href="/bill" className="col-span-2"><Icon name="plus" className="h-5 w-5" />{t('bill.newAnother')}</LinkButton>
+        <LinkButton href="/udhari" className="col-span-2"><Icon name="plus" className="h-5 w-5" />{t('bill.newAnother')}</LinkButton>
       </div>
       {b.payments.length > 0 && (
         <ul className="no-print mt-4 divide-y divide-line rounded-2xl border border-line">

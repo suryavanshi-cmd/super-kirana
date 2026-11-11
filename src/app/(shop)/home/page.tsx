@@ -1,65 +1,57 @@
 'use client';
 import Link from 'next/link';
-import { ActivityList } from '@/components/activity';
-import { EmptyState, ErrorBox, Icon, Money, Section, Skeleton, StaleNote } from '@/components/ui';
-import { rpc, type Activity, type DailySummary } from '@/lib/api';
-import { useQuery } from '@/lib/data';
-import type { Key } from '@/lib/dictionary';
+import { useMemo, useState } from 'react';
+import { DueTag, EmptyState, ErrorBox, Icon, Money, SearchBox, Section, Skeleton, StaleNote } from '@/components/ui';
+import { matches } from '@/lib/data';
 import { useI18n } from '@/lib/i18n';
-import { useShop } from '@/lib/session';
+import { useCustomers } from '@/lib/lists';
 
-const ACTIONS: { href: string; icon: string; label: Key }[] = [
-  { href: '/bill', icon: 'plus', label: 'home.newBill' },
-  { href: '/scan', icon: 'camera', label: 'home.scan' },
-  { href: '/customers/new', icon: 'users', label: 'home.addCustomer' },
-  { href: '/customers?pick=pay', icon: 'rupee', label: 'home.receive' },
-];
-
+/** The whole app for a shopkeeper: two actions and the list of who owes what. */
 export default function HomePage() {
-  const { t, locale } = useI18n();
-  const { shop, scope } = useShop();
-  const summary = useQuery(() => rpc<DailySummary>('get_shop_daily_summary', { p_shop_id: shop.id }), [shop.id], `${scope}summary`);
-  const recent = useQuery(() => rpc<Activity[]>('list_recent_activity', { p_shop_id: shop.id, p_limit: 12 }), [shop.id], `${scope}recent`);
-  const s = summary.data;
-  const tiles: { label: Key; hint?: Key; value: React.ReactNode; due?: boolean }[] = s ? [
-    { label: 'home.todaySales', hint: 'home.salesHint', value: <Money paise={s.net_sales_paise} /> },
-    { label: 'home.todayCollected', hint: 'home.collectedHint', value: <Money paise={s.net_collections_paise} /> },
-    { label: 'home.totalDue', value: <Money paise={s.total_outstanding_paise} />, due: true },
-    { label: 'home.customersDue', value: <span className="num">{s.customers_with_due}</span>, due: true },
-  ] : [];
+  const { t } = useI18n();
+  const list = useCustomers();
+  const [q, setQ] = useState('');
+  const rows = useMemo(() => {
+    const all = list.data ?? [];
+    return q.trim() ? all.filter((c) => matches(q, c.name, c.mobile)) : all.filter((c) => c.balance_paise > 0);
+  }, [list.data, q]);
+  const total = (list.data ?? []).reduce((s, c) => s + Math.max(c.balance_paise, 0), 0);
+
   return (
     <div>
-      <h1 className="text-2xl font-bold">{locale === 'mr-IN' ? shop.name_mr : shop.name_en}</h1>
-      <p className="text-muted">{t('home.greeting')}</p>
-      <StaleNote show={summary.stale} />
-      {!s && summary.loading && <Skeleton lines={2} />}
-      {!s && <ErrorBox error={summary.error} onRetry={summary.reload} />}
-      {s && (
-        <dl className="mt-4 grid grid-cols-2 gap-3" data-testid="summary">
-          {tiles.map((x) => (
-            <div key={x.label} className={`rounded-2xl border p-3 ${x.due ? 'border-amber-200 bg-due-bg' : 'border-brand-100 bg-brand-50'}`}>
-              <dt className={`text-sm font-semibold ${x.due ? 'text-due' : 'text-brand-800'}`}>{t(x.label)}</dt>
-              <dd className="mt-1 text-xl font-bold" data-testid={x.label}>{x.value}</dd>
-              {x.hint && <p className="mt-0.5 text-xs text-muted">{t(x.hint)}</p>}
-            </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Link href="/udhari" className="flex min-h-24 items-center gap-4 rounded-2xl bg-brand-600 p-4 text-white hover:bg-brand-700">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/15"><Icon name="plus" className="h-8 w-8" /></span>
+          <span><span className="block text-xl font-bold">{t('home.udhari')}</span><span className="block text-sm text-white/85">{t('home.udhariHint')}</span></span>
+        </Link>
+        <Link href="/scan" className="flex min-h-24 items-center gap-4 rounded-2xl border-2 border-brand-600 p-4 text-brand-800 hover:bg-brand-50">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-50"><Icon name="camera" className="h-8 w-8" /></span>
+          <span><span className="block text-xl font-bold">{t('home.scan')}</span><span className="block text-sm text-muted">{t('home.scanHint')}</span></span>
+        </Link>
+      </div>
+
+      <Section title={t('home.customersDue')} action={list.data && total > 0 ? <span className="text-sm font-semibold text-due">{t('c.total')} <Money paise={total} /></span> : undefined}>
+        <SearchBox value={q} onChange={setQ} placeholder={t('home.search')} />
+        <StaleNote show={list.stale} />
+        {!list.data && list.loading && <Skeleton lines={4} />}
+        {!list.data && <ErrorBox error={list.error} onRetry={list.reload} />}
+        {list.data && rows.length === 0 && (
+          q.trim() ? <EmptyState icon="search" title={t('cust.noMatch')} /> : <EmptyState icon="check" title={t('home.noPending')} hint={t('home.addFirst')} />
+        )}
+        <ul className="mt-2 divide-y divide-line" data-testid="pending-list">
+          {rows.map((c) => (
+            <li key={c.id}>
+              <Link href={`/customers/${c.id}`} className="flex min-h-16 items-center gap-3 py-2 hover:bg-slate-50">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-lg font-bold text-brand-800" aria-hidden="true">{[...c.name][0]}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-semibold">{c.name}</span>
+                  {c.mobile && <span className="num block text-sm text-muted">{c.mobile}</span>}
+                </span>
+                <DueTag paise={c.balance_paise} />
+              </Link>
+            </li>
           ))}
-        </dl>
-      )}
-      <Section title={t('home.quick')}>
-        <div className="grid grid-cols-2 gap-3">
-          {ACTIONS.map((a, i) => (
-            <Link key={a.href} href={a.href}
-              className={`flex min-h-20 flex-col items-start justify-between gap-2 rounded-2xl p-3 font-bold ${i < 2 ? 'bg-brand-600 text-white hover:bg-brand-700' : 'border border-brand-600 text-brand-700 hover:bg-brand-50'}`}>
-              <Icon name={a.icon} className="h-7 w-7" /><span>{t(a.label)}</span>
-            </Link>
-          ))}
-        </div>
-      </Section>
-      <Section title={t('home.recent')}>
-        {!recent.data && recent.loading && <Skeleton />}
-        {!recent.data && <ErrorBox error={recent.error} onRetry={recent.reload} />}
-        {recent.data && recent.data.length === 0 && <EmptyState icon="clock" title={t('home.noActivity')} />}
-        {recent.data && recent.data.length > 0 && <ActivityList rows={recent.data} timeZone={shop.timezone} />}
+        </ul>
       </Section>
     </div>
   );

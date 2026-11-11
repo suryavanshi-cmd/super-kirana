@@ -9,7 +9,7 @@ import { lineId, loadDraft, saveDraft, type Line } from '@/lib/draft';
 import { useI18n } from '@/lib/i18n';
 import { useProducts } from '@/lib/lists';
 import { formatPaise, paiseToInputText, parseQty, parseRupees, UNITS, unitRatio, type Unit } from '@/lib/money';
-import { pickAdapter } from '@/lib/ocr/adapters';
+import { recognizeBest } from '@/lib/ocr/adapters';
 import { applyCatalogue, matchProducts } from '@/lib/ocr/match';
 import { isResolved, parseText } from '@/lib/ocr/parse';
 import type { DraftItem, Flag } from '@/lib/ocr/types';
@@ -55,8 +55,7 @@ export default function ScanPage() {
     if (!image) return;
     setStage('reading'); setProgress(0); setError(null);
     try {
-      const adapter = await pickAdapter(shop.id);
-      const r = await adapter.recognize(image, shop.id, setProgress);
+      const r = await recognizeBest(image, shop.id, setProgress);
       toReview(r.text, r.lines, r.provider, r.confidence);
     } catch { setError(t('scan.unclear')); setStage('unclear'); }
   }
@@ -172,7 +171,7 @@ export default function ScanPage() {
 
   return (
     <div>
-      <PageHeader title={t('scan.title')} back="/bill" />
+      <PageHeader title={t('scan.title')} back="/home" />
       <input ref={camera} type="file" accept="image/*" capture="environment" className="hidden" data-testid="camera-input" onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ''; }} />
       <input ref={gallery} type="file" accept="image/*" className="hidden" data-testid="gallery-input" onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ''; }} />
 
@@ -220,7 +219,7 @@ export default function ScanPage() {
       {stage === 'review' && (
         <div>
           <Notice tone="warn">{t('scan.draftOnly')}</Notice>
-          <p className="text-sm text-muted">{meta.provider === 'google-vision' ? t('scan.cloud') : meta.provider === 'typed' ? t('scan.typeInstead') : t('scan.device')}</p>
+          <p className="text-sm text-muted">{meta.provider === 'ocr-space' ? t('scan.cloud') : meta.provider === 'typed' ? t('scan.typeInstead') : t('scan.device')}</p>
           <div className="md:grid md:grid-cols-2 md:gap-4">
             {photo && (
               <div className="md:sticky md:top-20 md:self-start">
