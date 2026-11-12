@@ -1,6 +1,6 @@
 'use client';
-import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useState } from 'react';
 import { failedText, UnknownOutcome } from '@/components/outcome';
 import { Button, Card, Dialog, ErrorBox, Field, Input, LinkButton, Money, MoneyInput, Notice, PageHeader, Row, Segmented, Skeleton, useToast } from '@/components/ui';
 import { newKey, rpc, type CustomerDetail, type Method } from '@/lib/api';
@@ -10,7 +10,7 @@ import { formatPaise, paiseToInputText, parseRupees } from '@/lib/money';
 import { send, type Pending } from '@/lib/mutations';
 import { useShop } from '@/lib/session';
 
-export default function ReceivePaymentPage() {
+function ReceivePayment() {
   const { id } = useParams<{ id: string }>();
   const { t } = useI18n();
   const { shop, scope } = useShop();
@@ -18,7 +18,8 @@ export default function ReceivePaymentPage() {
   const toast = useToast();
   const online = useOnline();
   const q = useQuery(() => rpc<CustomerDetail>('get_customer', { p_shop_id: shop.id, p_customer_id: id }), [shop.id, id]);
-  const [amount, setAmount] = useState('');
+  const spoken = useSearchParams().get('amount');     // from the voice screen
+  const [amount, setAmount] = useState(() => (spoken && /^\d{1,9}(\.\d{1,2})?$/.test(spoken) ? spoken : ''));
   const [method, setMethod] = useState<Method>('cash');
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
@@ -84,3 +85,5 @@ export default function ReceivePaymentPage() {
     </div>
   );
 }
+
+export default function ReceivePaymentPage() { return <Suspense fallback={<Skeleton />}><ReceivePayment /></Suspense>; }

@@ -25,12 +25,13 @@ function UdhariScreen() {
   const toast = useToast();
   const online = useOnline();
   const customers = useCustomers();
-  const [customerId, setCustomerId] = useState<string | null>(useSearchParams().get('customer'));
+  const sp = useSearchParams();       // filled in when coming from the voice screen
+  const [customerId, setCustomerId] = useState<string | null>(sp.get('customer'));
   const [q, setQ] = useState('');
   const [adding, setAdding] = useState(false);
-  const [amount, setAmount] = useState('');
-  const [what, setWhat] = useState('');
-  const [paid, setPaid] = useState('');
+  const [amount, setAmount] = useState(() => cleanAmount(sp.get('amount')));
+  const [what, setWhat] = useState(() => (sp.get('what') ?? '').slice(0, 120));
+  const [paid, setPaid] = useState(() => cleanAmount(sp.get('paid')));
   const [method, setMethod] = useState<Method>('cash');
   const [showErrors, setShowErrors] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -145,6 +146,11 @@ function UdhariScreen() {
       </Dialog>
     </div>
   );
+}
+
+function cleanAmount(v: string | null): string {
+  if (!v || !/^\d{1,9}(\.\d{1,2})?$/.test(v) || Number(v) === 0) return '';
+  return v;
 }
 
 export default function UdhariPage() { return <Suspense fallback={<Skeleton lines={4} />}><UdhariScreen /></Suspense>; }

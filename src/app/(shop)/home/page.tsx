@@ -32,6 +32,10 @@ export default function HomePage() {
           <span><span className="block text-xl font-bold">{t('home.scan')}</span><span className="block text-sm text-muted">{t('home.scanHint')}</span></span>
         </Link>
       </div>
+      <Link href="/voice" className="mt-3 flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-white p-3 hover:border-brand-600" data-testid="voice-entry">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white"><Icon name="mic" className="h-6 w-6" /></span>
+        <span className="min-w-0"><span className="block text-lg font-bold text-brand-800">{t('home.voice')}</span><span className="block truncate text-sm text-muted">{t('home.voiceHint')}</span></span>
+      </Link>
 
       <Section title={t('home.customersDue')} action={list.data && total > 0 ? <span className="text-sm font-semibold text-due">{t('c.total')} <Money paise={total} /></span> : undefined}>
         <SearchBox value={q} onChange={setQ} placeholder={t('home.search')} />

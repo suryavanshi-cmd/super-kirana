@@ -94,3 +94,14 @@ supabase/functions/    auth-admin (login, onboarding, staff), ocr-vision (option
 src/app/               screens            src/lib/   money, drafts, request tracking, OCR, i18n
 tests/unit|db|e2e      test suites        tests/harness/   local Supabase stand-in
 ```
+
+## Voice entry (बोलून नोंदवा)
+
+Home → **बोलून नोंदवा**. Speak one sentence in Marathi, Hindi or English (or a mix), e.g.
+"सुरेश भट यांनी 2,000 रुपयाचा किराणा घेतला, नो पेमेंट", "kab se hotel Ambari 250 rupees pending",
+"मीना जाधव 500 जमा केले". The app works out the customer (sound-alike matching across Marathi and
+English spelling), credit or payment, the amount (digits or words: दोन हजार, अडीचशे, साडे तीन हजार,
+two thousand five hundred, do hazar) and any money paid now, then opens the normal उधारी or पैसे जमा
+screen pre-filled. Nothing is saved until the shopkeeper confirms there. Speech recognition is the
+browser's own (Chrome on Android works best); the sentence can always be typed or corrected instead.
+Parser: `src/lib/voice/parse.ts`, tests: `tests/unit/voice.test.ts`.

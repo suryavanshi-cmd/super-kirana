@@ -158,6 +158,72 @@ test('usability: English letters find Marathi names, duplicates are caught, amou
   expect(href).toContain('सुपर किराणा, निफाड');
 });
 
+test('voice: a spoken sentence fills the credit or payment screen; nothing is saved without confirming', async () => {
+  // A stand-in for the browser's speech recogniser: it "hears" whatever the test puts in window.__speech.
+  // Plain JavaScript string: the test compiler's helpers for class fields do not exist in the page.
+  await page.addInitScript(`
+    window.webkitSpeechRecognition = function FakeRecognition() {
+      const self = this;
+      self.lang = ''; self.onresult = null; self.onerror = null; self.onend = null;
+      self.start = function () {
+        window.__lang = self.lang;
+        const alts = window.__speech || [];
+        setTimeout(function () {
+          const res = alts.map(function (t) { return { transcript: t, confidence: 0.8 }; });
+          res.isFinal = true;
+          if (self.onresult) self.onresult({ resultIndex: 0, results: [res] });
+          if (self.onend) self.onend();
+        }, 50);
+      };
+      self.stop = function () {}; self.abort = function () {};
+    };
+    window.SpeechRecognition = window.webkitSpeechRecognition;
+  `);
+  await page.goto('/home');
+  await page.getByTestId('voice-entry').click();
+  await expect(page).toHaveURL(/\/voice$/);
+
+  // Credit, Hinglish; the recogniser's second guess is the one that names a known customer.
+  await page.evaluate(() => { (window as unknown as { __speech: string[] }).__speech = ['so rest petal 2000 kirana', 'Suresh Patil ne 2,000 rupaye ka kirana liya no payment']; });
+  await page.getByTestId('mic').click();
+  await expect(page.getByTestId('vo-text')).toHaveValue('Suresh Patil ne 2,000 rupaye ka kirana liya no payment');
+  expect(await page.evaluate(() => (window as unknown as { __lang: string }).__lang)).toBe('mr-IN');
+  await expect(page.getByTestId('vo-intent')).toHaveText('उधारी (नवीन बिल)');
+  await expect(page.getByTestId('vo-amount')).toHaveText('₹2,000.00');
+  await expect(page.getByTestId('vo-paid')).toHaveText('₹0.00');
+  await expect(page.getByRole('button', { name: /सुरेश पाटील/, pressed: true })).toBeVisible();
+  await page.getByTestId('vo-continue').click();
+  await expect(page).toHaveURL(/\/udhari\?/);
+  await expect(page.getByTestId('ud-customer')).toContainText('सुरेश पाटील');
+  await expect(page.getByLabel('बिलाची रक्कम')).toHaveValue('2000');
+  await expect(page.getByLabel('काय घेतले')).toHaveValue('kirana');
+  await expect(page.getByTestId('ud-total')).toHaveText('₹2,615.00');
+  await page.getByRole('button', { name: 'उधारी सेव्ह करा' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();                 // still needs the shopkeeper's confirmation
+  await page.goto('/home');
+  await expect(pendingRow(page, 'सुरेश पाटील')).toContainText('₹615.00');  // nothing saved
+
+  // Payment, typed in Marathi instead of spoken.
+  await page.goto('/voice');
+  await page.getByTestId('vo-text').fill('सुरेश पाटील यांनी 300 रुपये जमा केले');
+  await expect(page.getByTestId('vo-intent')).toHaveText('पैसे जमा (जुनी बाकी)');
+  await page.getByTestId('vo-continue').click();
+  await expect(page).toHaveURL(/\/pay\?amount=300$/);
+  await expect(page.getByLabel('जमा रक्कम')).toHaveValue('300');
+
+  // Unknown name: offered as a new customer with the spoken name filled in.
+  await page.goto('/voice');
+  await page.getByTestId('vo-text').fill('kab se hotel Ambari 250 rupees pending');
+  await expect(page.getByText('"hotel Ambari" नावाचा ग्राहक सापडला नाही.')).toBeVisible();
+  await expect(page.getByTestId('vo-continue')).toBeDisabled();
+  await page.getByRole('button', { name: 'नवीन ग्राहक: hotel Ambari' }).click();
+  await expect(page.getByLabel('ग्राहकाचे नाव')).toHaveValue('hotel Ambari');
+  await page.getByRole('button', { name: 'सेव्ह करा' }).click();
+  await expect(page).toHaveURL(/\/udhari\?/);
+  await expect(page.getByTestId('ud-customer')).toContainText('hotel Ambari');
+  await expect(page.getByLabel('बिलाची रक्कम')).toHaveValue('250');
+});
+
 test('E: collecting old dues lowers the balance and does not add to sales; overpayment is refused', async () => {
   await page.goto(customerUrl);
   await page.getByRole('link', { name: 'पैसे जमा करा' }).click();
@@ -428,12 +494,17 @@ test('layout fits a 320px-wide phone without sideways scrolling', async ({ brows
   const small = await ctx.newPage();
   await login(small, ADMIN.username, ADMIN.password);
   await expect(small).toHaveURL(/\/home$/);
-  for (const path of ['/home', '/udhari', `/udhari?customer=${customerUrl.split('/').pop()}`, '/scan', '/bill', '/settings', customerUrl, `${customerUrl}/pay`, '/admin']) {
+  for (const path of ['/home', '/udhari', `/udhari?customer=${customerUrl.split('/').pop()}`, '/scan', '/bill', '/settings', customerUrl, `${customerUrl}/pay`, '/admin', '/voice']) {
     await small.goto(path);
     await small.waitForLoadState('networkidle');
     const overflow = await small.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow, `${path} overflows by ${overflow}px`).toBeLessThanOrEqual(0);
   }
+  await small.goto('/voice');
+  await small.getByTestId('vo-text').fill('सुरेश यांनी 1500 चा किराणा घेतला, 500 दिले');
+  await expect(small.getByTestId('vo-matches')).toBeVisible();
+  expect(await small.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+  await small.screenshot({ path: '.e2e/voice-320.png', fullPage: true });
   await ctx.close();
 });
 
