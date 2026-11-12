@@ -17,6 +17,10 @@ Sources: [Google Cloud Vision language support](https://docs.cloud.google.com/vi
 
 **Update (Nov 2026):** the app now uses **OCR.space** (`ocr` edge function): Engine 3 first, which reads handwriting, then Engine 2 (lists Marathi) if Engine 3 returns nothing. Free plan: 25,000 requests a month plus 1,000 Engine 3 requests, 1 MB per image, 500 a day per IP. Photos are shrunk to under 900 KB on the phone first. If OCR.space cannot be reached, the on-device reader below is used.
 
+**Live check (12 Nov 2026):** OCR.space read a printed Marathi test list (`साखर 2 किलो`, `तेल 1 लिटर 140`) exactly with both Engine 3 and Engine 2, in about one second. Handwriting accuracy still depends on the photo; every line is reviewed before it reaches a bill.
+
+Before reading, photos are turned grey and contrast-stretched on the phone. The parser also fixes common misreads (`2O0` → 200, `l kg` → 1 kg), fractions (`1/2`, `1½`), quantity words (`दोन किलो`) and more unit spellings.
+
 **Original choice:** on-device Tesseract by default, because it is free, private and works for printed
 lists; Google Cloud Vision as the optional provider for handwriting, because it is the only one of
 the three with any Devanagari handwriting support. No provider reads every handwritten Marathi

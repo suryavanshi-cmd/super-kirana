@@ -109,3 +109,27 @@ describe('catalogue matching', () => {
     expect(applyCatalogue(parseLine('केशर 1 ग्रॅम')!, catalogue).flags).toContain('unmatched');
   });
 });
+
+describe('OCR misreads and shopkeeper shorthand', () => {
+  it('fixes letters read inside numbers', () => {
+    expect(parseLine('साखर 2O0 gm')).toMatchObject({ qtyText: '200', unit: 'g' });
+    expect(parseLine('Rice l kg @ 6O')).toMatchObject({ qtyText: '1', unit: 'kg', unitPricePaise: 6000 });
+    expect(parseLine('Oil 1 l')).toMatchObject({ name: 'Oil', qtyText: '1', unit: 'litre' });   // "l" alone after a number is litre
+    expect(parseLine('Oats 1 kg')).toMatchObject({ name: 'Oats' });                           // words are left alone
+  });
+  it('reads fractions', () => {
+    expect(parseLine('रवा 1/2 किलो')).toMatchObject({ name: 'रवा', qtyText: '0.5', unit: 'kg' });
+    expect(parseLine('Sugar 1 1/2 kg')).toMatchObject({ qtyText: '1.5', unit: 'kg' });
+    expect(parseLine('डाळ 1½ किलो')).toMatchObject({ qtyText: '1.5', unit: 'kg' });
+    expect(parseLine('चहा ¼ किलो')).toMatchObject({ qtyText: '0.25', unit: 'kg' });
+    expect(parseLine('Oil 1 ltr 140/-')).toMatchObject({ unitPricePaise: 14000 });           // "/-" is not a fraction
+    expect(parseLine('साखर 2 kg 42/kg')).toMatchObject({ unitPricePaise: 4200 });
+  });
+  it('reads quantity words and more unit spellings', () => {
+    expect(parseLine('दोन किलो साखर')).toMatchObject({ name: 'साखर', qtyText: '2', unit: 'kg' });
+    expect(parseLine('two packet biscuit')).toMatchObject({ name: 'biscuit', qtyText: '2', unit: 'packet' });
+    expect(parseLine('तेल 5 लि.')).toMatchObject({ qtyText: '5', unit: 'litre' });
+    expect(parseLine('Maggi 4 pcs')).toMatchObject({ qtyText: '4', unit: 'piece' });
+    expect(parseLine('पोहे 500 ग्रा')).toMatchObject({ qtyText: '500', unit: 'g' });
+  });
+});

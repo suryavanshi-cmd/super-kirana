@@ -10,6 +10,7 @@ import { matches, useOnline } from '@/lib/data';
 import { useI18n } from '@/lib/i18n';
 import { useCustomers } from '@/lib/lists';
 import { formatPaise, parseRupees } from '@/lib/money';
+import { paiseInWords } from '@/lib/words';
 import { send, type Pending } from '@/lib/mutations';
 import { useShop } from '@/lib/session';
 
@@ -18,7 +19,7 @@ import { useShop } from '@/lib/session';
  * It posts a one-line bill through the same create_invoice function as an itemised bill.
  */
 function UdhariScreen() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { shop, scope } = useShop();
   const router = useRouter();
   const toast = useToast();
@@ -104,12 +105,16 @@ function UdhariScreen() {
       {!pending && (
         <>
           <Field label={t('ud.amount')} error={showErrors && !amountOk ? t('ud.amountNeeded') : null}>
-            {(id, d) => <MoneyInput id={id} aria-describedby={d} value={amount} onChange={(e) => setAmount(e.target.value)} invalid={showErrors && !amountOk} autoFocus className="h-14 text-2xl" />}
+            {(id, d) => <MoneyInput id={id} aria-describedby={d} value={amount} onChange={(e) => setAmount(e.target.value)} invalid={showErrors && !amountOk} autoFocus words className="h-14 text-2xl" />}
           </Field>
           <Field label={t('ud.what')} optional>{(id) => <Input id={id} value={what} onChange={(e) => setWhat(e.target.value)} placeholder={t('ud.defaultItem')} maxLength={120} autoComplete="off" />}</Field>
           <Field label={t('ud.paidNow')} hint={t('ud.paidHint')} error={showErrors && !paidOk ? t('bill.overpay') : null}>
-            {(id, d) => <MoneyInput id={id} aria-describedby={d} value={paid} onChange={(e) => setPaid(e.target.value)} invalid={showErrors && !paidOk} placeholder="0" />}
+            {(id, d) => <MoneyInput id={id} aria-describedby={d} value={paid} onChange={(e) => setPaid(e.target.value)} invalid={showErrors && !paidOk} placeholder="0" words />}
           </Field>
+          <div className="-mt-2 mb-4 grid grid-cols-2 gap-2">
+            <Button variant="secondary" disabled={!amt.ok} onClick={() => setPaid(amount.trim())}>{t('ud.paidFull')}</Button>
+            <Button variant="secondary" onClick={() => setPaid('')}>{t('ud.paidNone')}</Button>
+          </div>
           {pd.ok && pd.value > 0 && (
             <div className="-mt-2 mb-4">
               <Segmented label={t('bill.method')} value={method} onChange={setMethod} options={(['cash', 'upi'] as const).map((m) => ({ value: m, label: t(`method.${m}`) }))} />
@@ -135,6 +140,7 @@ function UdhariScreen() {
         <Row label={`${t('bill.newBill')} — ${what.trim() || t('ud.defaultItem')}`}><Money paise={amt.ok ? amt.value : 0} /></Row>
         <Row label={`${t('bill.paid')}${pd.ok && pd.value > 0 ? ` (${t(`method.${method}`)})` : ''}`}><Money paise={pd.ok ? pd.value : 0} /></Row>
         <Row label={t('bill.totalDue')} strong><Money paise={Math.max(newTotal, 0)} /></Row>
+        {amt.ok && <p className="mt-2 text-sm text-muted">{t('bill.newBill')}: {paiseInWords(amt.value, locale)}</p>}
         {amt.ok && pd.ok && pd.value > amt.value && <Notice>{t('bill.split', { a: formatPaise(amt.value), b: formatPaise(pd.value - amt.value) })}</Notice>}
       </Dialog>
     </div>

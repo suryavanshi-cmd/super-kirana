@@ -62,7 +62,7 @@ export default function ReceivePaymentPage() {
           <Notice>{t('pay.oldDuesNote')}</Notice>
           {failed && <ErrorBox error={failed} />}
           <Field label={t('pay.amount')} error={invalid ? (tooMuch ? t('pay.tooMuch', { a: formatPaise(c.balance_paise) }) : t('bill.checkAmount')) : null}>
-            {(fid, d) => <MoneyInput id={fid} aria-describedby={d} value={amount} onChange={(e) => setAmount(e.target.value)} invalid={invalid} autoFocus />}
+            {(fid, d) => <MoneyInput id={fid} aria-describedby={d} value={amount} onChange={(e) => setAmount(e.target.value)} invalid={invalid} autoFocus words />}
           </Field>
           <Button variant="secondary" className="mb-4" onClick={() => setAmount(paiseToInputText(c.balance_paise))}>{t('pay.fullDue')} · <Money paise={c.balance_paise} /></Button>
           <p className="mb-1 text-sm font-semibold">{t('bill.method')}</p>

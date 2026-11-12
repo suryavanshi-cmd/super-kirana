@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppError } from './api';
 import { idbGet, idbSet } from './idb';
+import { soundsLike } from './translit';
 
 export interface Query<T> { data: T | undefined; error: AppError | null; loading: boolean; stale: boolean; reload: () => Promise<void> }
 
@@ -57,5 +58,9 @@ export function useOnline(): boolean {
 export function matches(query: string, ...fields: (string | null | undefined)[]): boolean {
   const q = query.normalize('NFC').toLowerCase().trim();
   if (!q) return true;
-  return fields.some((f) => !!f && f.normalize('NFC').toLowerCase().includes(q));
+  const digits = q.replace(/[\s-]/g, '');
+  return fields.some((f) => !!f && (
+    f.normalize('NFC').toLowerCase().includes(q)
+    || (/^\+?\d{3,}$/.test(digits) && f.replace(/[\s-]/g, '').includes(digits))   // phone typed with or without spaces
+    || soundsLike(q, f)));                                                         // "suresh" finds सुरेश
 }

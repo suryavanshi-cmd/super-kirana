@@ -6,6 +6,32 @@
 import { supabase, SUPABASE_KEY, SUPABASE_URL } from '../supabase';
 import type { OcrAdapter, OcrResult } from './types';
 
+/**
+ * Grey-scale + contrast stretch: shop lists are often written in pale pen on lined paper under
+ * yellow light. Stretching the 2nd–98th percentile of brightness to full range makes the ink
+ * darker and the paper whiter, which helps both OCR engines.
+ */
+function enhance(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+  const img = ctx.getImageData(0, 0, w, h);
+  const d = img.data;
+  const hist = new Uint32Array(256);
+  for (let i = 0; i < d.length; i += 4) {
+    const y = (d[i] * 299 + d[i + 1] * 587 + d[i + 2] * 114) / 1000;
+    d[i] = y; hist[y | 0]++;
+  }
+  const total = w * h;
+  let lo = 0, hi = 255, acc = 0;
+  for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc >= total * 0.02) { lo = v; break; } }
+  acc = 0;
+  for (let v = 255; v >= 0; v--) { acc += hist[v]; if (acc >= total * 0.02) { hi = v; break; } }
+  const range = Math.max(hi - lo, 1);
+  for (let i = 0; i < d.length; i += 4) {
+    const v = Math.max(0, Math.min(255, ((d[i] - lo) * 255) / range));
+    d[i] = d[i + 1] = d[i + 2] = v;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
 /** Shrinks a camera photo so OCR is fast on a phone and uploads stay small. */
 export async function downscale(image: Blob, maxSide = 1800, quality = 0.85): Promise<Blob> {
   try {
@@ -13,7 +39,9 @@ export async function downscale(image: Blob, maxSide = 1800, quality = 0.85): Pr
     const scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
     const canvas = document.createElement('canvas');
     canvas.width = Math.round(bmp.width * scale); canvas.height = Math.round(bmp.height * scale);
-    canvas.getContext('2d')!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+    ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    enhance(ctx, canvas.width, canvas.height);
     return await new Promise<Blob>((ok) => canvas.toBlob((b) => ok(b ?? image), 'image/jpeg', quality));
   } catch { return image; }
 }

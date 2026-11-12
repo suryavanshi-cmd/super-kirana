@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
 import { AppError } from '@/lib/api';
 import { errorKey, useI18n } from '@/lib/i18n';
-import { formatPaise } from '@/lib/money';
+import { formatPaise, parseRupees } from '@/lib/money';
+import { paiseInWords } from '@/lib/words';
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
 
@@ -108,13 +109,19 @@ const INPUT = 'block min-h-12 w-full rounded-xl border border-slate-400 bg-white
 export function Input({ invalid, className, ...rest }: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }) {
   return <input {...rest} aria-invalid={invalid || undefined} className={cx(INPUT, invalid && 'border-red-700', className)} />;
 }
-/** Money input: decimal keypad on phones, ₹ prefix, text value (parsed with parseRupees). */
-export function MoneyInput({ invalid, className, ...rest }: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }) {
+/** Money input: decimal keypad on phones, ₹ prefix, text value (parsed with parseRupees).
+ *  With `words`, the typed amount is spelled out below so an extra zero is easy to spot. */
+export function MoneyInput({ invalid, className, words, ...rest }: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean; words?: boolean }) {
+  const { locale } = useI18n();
+  const parsed = words && typeof rest.value === 'string' && rest.value.trim() ? parseRupees(rest.value, { allowZero: true }) : null;
   return (
+    <div>
     <div className="relative">
       <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg font-semibold text-muted" aria-hidden="true">₹</span>
       <input {...rest} inputMode="decimal" autoComplete="off" enterKeyHint="done" aria-invalid={invalid || undefined}
         className={cx(INPUT, 'num pl-8 text-lg font-semibold', invalid && 'border-red-700', className)} />
+    </div>
+    {parsed?.ok && parsed.value > 0 && <p className="mt-1 text-sm font-medium text-brand-800" data-testid="amount-words">{paiseInWords(parsed.value, locale)}</p>}
     </div>
   );
 }

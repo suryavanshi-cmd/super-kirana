@@ -67,7 +67,7 @@ export const newKey = (): string => crypto.randomUUID();
 export type Role = 'owner' | 'cashier';
 export interface ShopRef { id: string; shop_username: string; name_mr: string; name_en: string; status: 'active' | 'suspended'; timezone: string; role: Role; is_member: boolean }
 export interface Context { user_id: string; username: string; display_name: string; preferred_language: 'mr-IN' | 'en-IN'; must_change_password: boolean; is_platform_admin: boolean; shops: ShopRef[] }
-export interface CustomerRow { id: string; name: string; mobile: string | null; is_active: boolean; balance_paise: number }
+export interface CustomerRow { id: string; name: string; mobile: string | null; is_active: boolean; balance_paise: number; last_at?: string | null }
 export interface UnpaidInvoice { id: string; invoice_no: number; posted_at: string; total_paise: number; outstanding_paise: number }
 export interface CustomerDetail extends CustomerRow { notes: string | null; created_at: string; opening_balance_paise: number; purchases_paise: number; payments_paise: number; credits_paise: number; reconciled: boolean; opening_outstanding_paise: number; unpaid_invoices: UnpaidInvoice[] }
 export interface Product { id: string; name: string; name_en: string | null; name_mr: string | null; unit: import('./money').Unit; default_price_paise: number; is_active: boolean; barcode: string | null; category: string | null; purchase_cost_paise: number | null; stock_qty: number | null; sku: string | null }

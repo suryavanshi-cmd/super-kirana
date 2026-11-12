@@ -6,18 +6,39 @@ import { lineGrossPaise, parseQty, parseRupees, unitRatio, type Unit } from '../
 import type { DraftItem, Flag } from './types';
 
 const UNIT_WORDS: [RegExp, Unit][] = [
-  [/^(kg|kgs|kilo|kilos|किलो|कि\.?|केजी|किलोग्रॅम|किग्रॅ)$/i, 'kg'],
-  [/^(g|gm|gms|gram|grams|ग्रॅम|ग्राम|ग्रॅ\.?)$/i, 'g'],
-  [/^(l|lt|ltr|litre|liter|litres|liters|लिटर|लीटर|ली\.?)$/i, 'litre'],
-  [/^(ml|मिली|मि\.?ली\.?|एमएल)$/i, 'ml'],
-  [/^(pkt|pkts|pack|packet|packets|पाकीट|पाकिट|पॅकेट|पुडा|पुडे)$/i, 'packet'],
-  [/^(pc|pcs|piece|pieces|nos|no|नग)$/i, 'piece'],
+  [/^(kg|kgs|kilo|kilos|kilogram|किलो|कीलो|कि\.?|केजी|किलोग्रॅम|किग्रॅ|कि\.ग्रॅ\.?)$/i, 'kg'],
+  [/^(g|gm|gms|grm|gram|grams|ग्रॅम|ग्राम|ग्रॅ\.?|ग्रा\.?|ग्रम)$/i, 'g'],
+  [/^(l|lt|ltr|ltrs|lit|litre|liter|litres|liters|लिटर|लीटर|ली\.?|लि\.?)$/i, 'litre'],
+  [/^(ml|mls|मिली|मि\.?ली\.?|एमएल)$/i, 'ml'],
+  [/^(pkt|pkts|pack|packs|packet|packets|पाकीट|पाकिट|पॅकेट|पॅक|पुडा|पुडे|पुडी)$/i, 'packet'],
+  [/^(pc|pcs|piece|pieces|nos|no|नग|नंग)$/i, 'piece'],
   [/^(dz|doz|dozen|डझन)$/i, 'dozen'],
 ];
 const FRACTION_WORDS: Record<string, string> = {
   'पाव': '0.25', 'अर्धा': '0.5', 'अर्धी': '0.5', 'अर्धे': '0.5', 'आधा': '0.5', 'पाऊण': '0.75', 'सव्वा': '1.25', 'दीड': '1.5', 'अडीच': '2.5',
   'half': '0.5', 'quarter': '0.25',
+  'एक': '1', 'दोन': '2', 'तीन': '3', 'चार': '4', 'पाच': '5', 'सहा': '6', 'सात': '7', 'आठ': '8', 'नऊ': '9', 'दहा': '10',
+  'one': '1', 'two': '2', 'three': '3', 'four': '4', 'five': '5', 'six': '6', 'seven': '7', 'eight': '8', 'nine': '9', 'ten': '10',
 };
+const VULGAR: Record<string, string> = { '½': '.5', '¼': '.25', '¾': '.75' };
+
+/** Common OCR misreads inside numbers: O→0, l/I/|→1 (only in tokens that already contain a digit). */
+function fixDigits(s: string): string {
+  return s
+    .replace(/(?<![\p{L}])[0-9OoIl|]*[0-9][0-9OoIl|]*(?:[.,][0-9OoIl|]+)?(?![\p{L}])/gu, (m) => m.replace(/[Oo]/g, '0').replace(/[Il|]/g, '1'))
+    .replace(/(?<![\p{L}\d])[Il|](?=\s*(?:kg|kgs|g|gm|ltr|lt|litre|liter|ml|pkt|pcs|dozen|किलो|लिटर|ग्रॅम|पाकीट|नग|डझन)(?![\p{L}]))/giu, '1');
+}
+
+/** "1/2" → 0.5, "1 1/2" or "1½" → 1.5 (halves, quarters and three-quarters only). */
+function fixFractions(s: string): string {
+  return s
+    .replace(/(\d*)\s*([½¼¾])/g, (_, w: string, f: string) => `${w || '0'}${VULGAR[f]}`)
+    .replace(/(?:(\d+)\s+)?\b([13])\s*\/\s*([24])\b(?!\s*-)/g, (m, w: string | undefined, n: string, d: string) => {
+      if (n === '3' && d === '2') return m;
+      const v = Number(n) / Number(d) + (w ? Number(w) : 0);
+      return String(v);
+    });
+}
 const RATE_HINT = /^(@|x|×|\*|दर|rate|प्रति)$/i;
 const NUM = /^\d+(?:\.\d+)?$/;
 
@@ -29,11 +50,13 @@ function tokenize(line: string): string[] {
     const cp = ch.codePointAt(0)!;
     s += cp >= 0x0966 && cp <= 0x096f ? String(cp - 0x0966) : ch;
   }
+  s = fixFractions(fixDigits(s));
   return s
     .replace(/^\s*(?:\d{1,2}[.)]|[-*•·])\s+/, '')          // list numbering / bullets
     .replace(/(\d),(\d{3})\b/g, '$1$2')                    // 1,250 -> 1250
     .replace(/(₹|रु\.?|rs\.?|inr)\s*/gi, ' ₹ ')
     .replace(/\/-/g, ' /- ')
+    .replace(/\/(?!-)/g, ' / ')                            // 42/kg -> 42 / kg
     .replace(/([=@×*])/g, ' $1 ')
     .replace(/(\d)\s*[xX]\s*(\d)/g, '$1 x $2')
     .replace(/(\d)([^\d\s.])/g, '$1 $2')                   // 500gm -> 500 gm

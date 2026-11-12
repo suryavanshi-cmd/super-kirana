@@ -208,7 +208,7 @@ function BillScreen() {
               <Row label={t('bill.billTotal')}><span className="text-xl" data-testid="bill-total"><Money paise={calc.totalPaise} /></span></Row>
               {!walkIn && <Row label={t('bill.prevDue')}><Money paise={previous} /></Row>}
               <div className="mt-3">
-                <Field label={t('bill.received')}>{(id) => <MoneyInput id={id} value={paidText} onChange={(e) => setPaid(e.target.value)} invalid={showErrors && (calc.problem === 'paid' || calc.problem === 'walkin' || calc.problem === 'overpay')} />}</Field>
+                <Field label={t('bill.received')}>{(id) => <MoneyInput id={id} value={paidText} onChange={(e) => setPaid(e.target.value)} invalid={showErrors && (calc.problem === 'paid' || calc.problem === 'walkin' || calc.problem === 'overpay')} words />}</Field>
                 <div className="-mt-2 mb-3 grid grid-cols-2 gap-2">
                   <Button variant="secondary" onClick={() => setPaid(paiseToInputText(calc.totalPaise))}>{t('bill.fullPaid')}</Button>
                   <Button variant="secondary" disabled={walkIn} onClick={() => setPaid('0')}>{t('bill.onCredit')}</Button>

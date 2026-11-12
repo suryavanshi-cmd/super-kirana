@@ -7,7 +7,8 @@ import { Button, Card, Dialog, EmptyState, ErrorBox, Field, Icon, LinkButton, Mo
 import { AppError, newKey, rpc, type CustomerDetail } from '@/lib/api';
 import { useQuery } from '@/lib/data';
 import { formatDateTime, useI18n } from '@/lib/i18n';
-import { paiseToInputText, parseRupees } from '@/lib/money';
+import { formatPaise, paiseToInputText, parseRupees } from '@/lib/money';
+import { shareText } from '@/lib/csv';
 import { useShop } from '@/lib/session';
 
 export default function CustomerPage() {
@@ -51,6 +52,15 @@ export default function CustomerPage() {
         <p className="text-xs text-muted">{t('cust.since')}: {formatDateTime(c.created_at, locale, shop.timezone, false)}</p>
       </Card>
       {!c.reconciled && <Notice tone="warn">{t('cust.mismatch')}</Notice>}
+      {c.balance_paise > 0 && (() => {
+        const text = t('cust.remindText', { n: c.name, s: locale === 'mr-IN' ? shop.name_mr : shop.name_en, a: formatPaise(c.balance_paise) });
+        const phone = (c.mobile ?? '').replace(/\D/g, '');
+        const wa = phone.length === 10 ? `91${phone}` : phone.length > 10 ? phone : '';
+        return wa
+          ? <a href={`https://wa.me/${wa}?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer" data-testid="remind"
+              className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-brand-600 bg-white px-4 font-semibold text-brand-700 hover:bg-brand-50"><Icon name="share" className="h-5 w-5" />{t('cust.remind')}</a>
+          : <Button variant="secondary" full className="mt-3" onClick={async () => { if ((await shareText(t('cust.remindShare'), text)) === 'copied') toast(t('c.copied')); }}><Icon name="share" className="h-5 w-5" />{t('cust.remindShare')}</Button>;
+      })()}
       <div className="mt-4 grid grid-cols-2 gap-3">
         {c.is_active ? <LinkButton href={`/udhari?customer=${c.id}`}><Icon name="plus" className="h-5 w-5" />{t('home.udhari')}</LinkButton> : <Button disabled>{t('home.udhari')}</Button>}
         {c.balance_paise > 0 ? <LinkButton href={`/customers/${c.id}/pay`} variant="secondary"><Icon name="rupee" className="h-5 w-5" />{t('home.receive')}</LinkButton> : <Button variant="secondary" disabled>{t('home.receive')}</Button>}

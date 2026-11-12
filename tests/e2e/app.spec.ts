@@ -122,6 +122,42 @@ test('A+B: new customer with ₹500 old dues; ₹315 bill with ₹200 paid → �
   customerUrl = new URL(page.url()).pathname;
 });
 
+test('usability: English letters find Marathi names, duplicates are caught, amounts shown in words, WhatsApp reminder', async () => {
+  await page.goto('/home');
+  await page.getByPlaceholder('ग्राहक शोधा').fill('suresh');
+  await expect(pendingRow(page, 'सुरेश पाटील')).toBeVisible();
+  await expect(pendingRow(page, 'सुरेश पाटील')).toContainText('शेवटचा व्यवहार: आज');
+  await page.getByPlaceholder('ग्राहक शोधा').fill('98765 43210');
+  await expect(pendingRow(page, 'सुरेश पाटील')).toBeVisible();
+
+  await page.goto('/udhari');
+  await page.getByRole('button', { name: 'नवीन ग्राहक' }).click();
+  await page.getByLabel('ग्राहकाचे नाव').fill('Suresh Patil');
+  await page.getByLabel(/मोबाईल नंबर/).fill('98765 43210');
+  await page.getByRole('button', { name: 'सेव्ह करा' }).click();
+  await expect(page.getByText(/या मोबाईल नंबरचा ग्राहक आधीच आहे: सुरेश पाटील/)).toBeVisible();
+  await page.getByLabel(/मोबाईल नंबर/).fill('');
+  await page.getByRole('button', { name: 'सेव्ह करा' }).click();
+  await expect(page.getByText(/"सुरेश पाटील" नावाचा ग्राहक आधीच आहे/)).toBeVisible();
+  await page.getByRole('button', { name: /तोच ग्राहक वापरा/ }).click();
+  await expect(page.getByTestId('ud-customer')).toContainText('सुरेश पाटील');
+  await page.getByLabel('बिलाची रक्कम').fill('1250');
+  await expect(page.getByTestId('amount-words').first()).toHaveText('एक हजार दोनशे पन्नास रुपये');
+  await page.getByRole('button', { name: 'पूर्ण पैसे दिले' }).click();
+  await expect(page.getByLabel('आत्ता दिलेले पैसे')).toHaveValue('1250');
+  await expect(page.getByTestId('ud-total')).toHaveText('₹615.00');
+  await page.getByRole('button', { name: 'काहीच दिले नाही' }).click();
+  await expect(page.getByTestId('ud-total')).toHaveText('₹1,865.00');
+
+  await page.goto(customerUrl);
+  const remind = page.getByTestId('remind');
+  await expect(remind).toHaveText(/WhatsApp वर आठवण पाठवा/);
+  const href = decodeURIComponent((await remind.getAttribute('href')) ?? '');
+  expect(href).toContain('https://wa.me/919876543210?text=');
+  expect(href).toContain('₹615.00');
+  expect(href).toContain('सुपर किराणा, निफाड');
+});
+
 test('E: collecting old dues lowers the balance and does not add to sales; overpayment is refused', async () => {
   await page.goto(customerUrl);
   await page.getByRole('link', { name: 'पैसे जमा करा' }).click();

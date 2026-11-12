@@ -49,3 +49,10 @@ export function todayIn(timeZone = 'Asia/Kolkata', offsetDays = 0): string {
   const d = new Date(Date.now() + offsetDays * 86400000);
   return new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 }
+
+/** "आज" / "काल" / "5 दिवसांपूर्वी", by the shop's calendar days. */
+export function relativeDay(iso: string, t: (k: Key, v?: Record<string, string | number>) => string, timeZone = 'Asia/Kolkata'): string {
+  const day = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+  const diff = Math.round((Date.parse(day(new Date())) - Date.parse(day(new Date(iso)))) / 86400000);
+  return diff <= 0 ? t('when.today') : diff === 1 ? t('when.yesterday') : t('when.days', { n: diff });
+}
