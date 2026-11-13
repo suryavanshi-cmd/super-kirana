@@ -1,9 +1,20 @@
 'use client';
 import { Button, Notice } from './ui';
 import { useI18n } from '@/lib/i18n';
+import type { Key } from '@/lib/dictionary';
 import { blockedBrowser, isStandalone } from '@/lib/mic';
+import type { SpeechStatus } from '@/lib/voice/useSpeech';
 
-type Status = 'checking' | 'idle' | 'asking' | 'listening' | 'unsupported' | 'denied' | 'siri' | 'insecure' | 'tapAgain' | 'nospeech' | 'busy' | 'lang' | 'error';
+type Status = SpeechStatus;
+
+/** The one-line state under a mic button, the same on every screen. */
+export function speechLabel(t: (k: Key, v?: Record<string, string | number>) => string, s: { status: SpeechStatus; interim: string; mode: 'native' | 'cloud' }, idle: string): string {
+  if (s.status === 'listening') return s.interim || (s.mode === 'cloud' ? t('vo.recording') : t('vo.listening'));
+  if (s.status === 'thinking') return t('vo.thinking');
+  if (s.status === 'asking') return t('vo.asking');
+  if (s.status === 'tapAgain') return t('vo.tapAgain');
+  return idle;
+}
 
 /** Explains, for this phone and browser, why the mic is not working and exactly what to change. */
 export function MicHelp({ status, os, onRetry }: { status: Status; os: 'ios' | 'android' | 'other'; onRetry: () => void }) {
@@ -11,7 +22,8 @@ export function MicHelp({ status, os, onRetry }: { status: Status; os: 'ios' | '
   const blocked = blockedBrowser();
   const steps = os === 'ios' ? t('vo.stepsIos') : os === 'android' ? t('vo.stepsAndroid') : t('vo.stepsOther');
   let body: React.ReactNode = null;
-  if (blocked === 'inapp' && status !== 'listening') body = <Notice tone="warn" icon="mic">{t('vo.inapp')}</Notice>;
+  // The backup recogniser works in most of these browsers, so only explain when nothing works.
+  if (blocked === 'inapp' && (status === 'unsupported' || status === 'denied')) body = <Notice tone="warn" icon="mic">{t('vo.inapp')}</Notice>;
   else if (status === 'unsupported') body = <Notice tone="warn" icon="mic">{blocked === 'iosOther' ? t('vo.iosOther') : os === 'ios' && isStandalone() ? t('vo.iosPwa') : t('vo.unsupported')}</Notice>;
   else if (status === 'denied') body = (
     <div data-testid="mic-help">

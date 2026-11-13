@@ -1,6 +1,6 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { CustomerForm } from '@/components/customer-form';
 import { MicHelp } from '@/components/mic-help';
 import { Button, Card, DueTag, ErrorBox, Icon, Money, Notice, PageHeader, Row, Segmented, Skeleton } from '@/components/ui';
@@ -8,29 +8,15 @@ import type { CustomerRow } from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
 import { useCustomers } from '@/lib/lists';
 import { paiseToInputText } from '@/lib/money';
-import { isStandalone, micState, platform, requestMic } from '@/lib/mic';
+import { savedLang, LANG_KEY, useSpeech, type SpeechLang } from '@/lib/voice/useSpeech';
+import { speechLabel } from '@/components/mic-help';
 import { parseVoice, type Intent, type VoiceDraft } from '@/lib/voice/parse';
 
 /**
  * Speak (or type) one sentence — "सुरेश भट 2000 चा किराणा घेतला, नो पेमेंट" — and the app fills in the
  * उधारी or पैसे जमा screen. Nothing is saved here: the normal screen shows the numbers for a final check.
  */
-type Lang = 'mr-IN' | 'hi-IN' | 'en-IN';
-type Status = 'checking' | 'idle' | 'asking' | 'listening' | 'unsupported' | 'denied' | 'siri' | 'insecure' | 'tapAgain' | 'nospeech' | 'busy' | 'lang' | 'error';
-
-interface Recognition {
-  lang: string; interimResults: boolean; continuous: boolean; maxAlternatives: number;
-  onresult: ((e: { resultIndex: number; results: ArrayLike<ArrayLike<{ transcript: string; confidence: number }> & { isFinal: boolean }> }) => void) | null;
-  onerror: ((e: { error: string }) => void) | null;
-  onend: (() => void) | null;
-  start(): void; stop(): void; abort(): void;
-}
-type RecognitionCtor = new () => Recognition;
-const recognitionCtor = (): RecognitionCtor | null => {
-  if (typeof window === 'undefined') return null;
-  const w = window as unknown as { SpeechRecognition?: RecognitionCtor; webkitSpeechRecognition?: RecognitionCtor };
-  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
-};
+type Lang = SpeechLang;
 
 /** Of the recogniser's alternatives, the one that makes the most sense: has an amount and a known customer. */
 function bestOf(alternatives: string[], customers: CustomerRow[]): string {
@@ -43,31 +29,18 @@ function bestOf(alternatives: string[], customers: CustomerRow[]): string {
   return best;
 }
 
-const LANG_KEY = 'sk.voiceLang';
-
 function VoiceScreen() {
   const { t, locale } = useI18n();
   const router = useRouter();
   const customers = useCustomers();
   const [lang, setLang] = useState<Lang>(locale === 'en-IN' ? 'en-IN' : 'mr-IN');
-  const [status, setStatus] = useState<Status>('checking');
   const said = useSearchParams().get('text');     // a sentence spoken from the mic on another screen
   const [text, setText] = useState((said ?? '').slice(0, 300));
-  const [interim, setInterim] = useState('');
   const [pickedId, setPickedId] = useState<string | null>(null);
   const [intentOverride, setIntentOverride] = useState<Intent | null>(null);
   const [adding, setAdding] = useState(false);
-  const rec = useRef<Recognition | null>(null);
-  const micOk = useRef(false);
-  const os = typeof window === 'undefined' ? 'other' : platform();
 
-  useEffect(() => {
-    try { const v = localStorage.getItem(LANG_KEY); if (v === 'mr-IN' || v === 'hi-IN' || v === 'en-IN') setLang(v); } catch { /* private mode */ }
-    setStatus(recognitionCtor() ? 'idle' : 'unsupported');     // known only in the browser
-    // If the phone already said "no" earlier, show how to allow it before the first tap.
-    void micState().then((m) => { micOk.current = m === 'granted'; if (m === 'denied' && recognitionCtor()) setStatus('denied'); });
-    return () => rec.current?.abort();
-  }, []);
+  useEffect(() => { setLang(savedLang(locale === 'en-IN' ? 'en-IN' : 'mr-IN')); }, [locale]);
 
   const all = customers.data ?? [];
   const draft: VoiceDraft | null = useMemo(() => (text.trim() ? parseVoice(text, all) : null), [text, all]);
@@ -77,46 +50,12 @@ function VoiceScreen() {
   const auto = top.length > 0 && top[0].score >= 0.85 && (top.length === 1 || top[0].score - top[1].score >= 0.15) ? top[0].customer : null;
   const chosen: CustomerRow | null = (pickedId && all.find((c) => c.id === pickedId)) || auto;
 
-  async function listen() {
-    const Ctor = recognitionCtor();
-    if (!Ctor) { setStatus('unsupported'); return; }
-    rec.current?.abort();
-    // iPhone: start straight from the tap; Safari shows its own microphone prompt.
-    if (!micOk.current && os !== 'ios') {
-      // First use: this tap shows the phone's own "allow microphone" prompt.
-      setStatus('asking');
-      const r = await requestMic();
-      if (r === 'denied') { setStatus('denied'); return; }
-      if (r === 'insecure') { setStatus('insecure'); return; }
-      micOk.current = true;
-    }
-    const r = new Ctor();
-    r.lang = lang; r.interimResults = true; r.continuous = false; r.maxAlternatives = 5;
-    let finalText = '';
-    r.onresult = (e) => {
-      let live = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const res = e.results[i];
-        if (res.isFinal) {
-          const alts = Array.from({ length: res.length }, (_, k) => res[k].transcript.trim()).filter(Boolean);
-          finalText = `${finalText} ${bestOf(alts, all)}`.trim();
-        } else live += res[0].transcript;
-      }
-      setInterim(live);
-      if (finalText) { setText(finalText); setPickedId(null); setIntentOverride(null); setAdding(false); }
-    };
-    r.onerror = (e) => setStatus(
-      e.error === 'not-allowed' ? (micOk.current && os === 'ios' ? 'tapAgain' : 'denied')
-        : e.error === 'service-not-allowed' ? (os === 'ios' ? 'siri' : 'denied')
-          : e.error === 'no-speech' ? 'nospeech' : e.error === 'aborted' ? 'idle'
-            : e.error === 'audio-capture' ? 'busy' : e.error === 'language-not-supported' ? 'lang' : 'error');
-    r.onend = () => { setInterim(''); setStatus((s) => (s === 'listening' ? 'idle' : s)); };
-    rec.current = r;
-    setStatus('listening');
-    // iOS sometimes needs a fresh tap after the permission prompt; ask for one instead of failing.
-    try { r.start(); } catch { setStatus('tapAgain'); }
-  }
-  const stop = () => rec.current?.stop();
+  const speech = useSpeech(lang, (alts) => {
+    const finalText = bestOf(alts, all);
+    if (finalText) { setText(finalText); setPickedId(null); setIntentOverride(null); setAdding(false); }
+  });
+  const { status, interim } = speech;
+  const listening = status === 'listening';
 
   function go(customerId: string) {
     if (!draft || draft.amountPaise === null) return;
@@ -140,16 +79,17 @@ function VoiceScreen() {
 
       {supported && (
         <div className="my-4 flex flex-col items-center gap-2">
-          <button type="button" onClick={status === 'listening' ? stop : () => void listen()} disabled={status === 'asking'} data-testid="mic"
-            aria-label={status === 'listening' ? t('vo.stop') : t('vo.tap')}
-            className={`flex h-28 w-28 items-center justify-center rounded-full text-white shadow-lg ${status === 'listening' ? 'animate-pulse bg-red-600' : 'bg-brand-600 hover:bg-brand-700'}`}>
-            <Icon name={status === 'listening' ? 'x' : 'mic'} className="h-12 w-12" />
+          <button type="button" onClick={listening ? speech.stop : () => void speech.start()} disabled={status === 'asking' || status === 'thinking'} data-testid="mic"
+            aria-label={listening ? t('vo.stop') : t('vo.tap')}
+            style={listening && speech.mode === 'cloud' ? { boxShadow: `0 0 0 ${4 + Math.round(speech.level * 22)}px rgba(220,38,38,0.25)` } : undefined}
+            className={`flex h-28 w-28 items-center justify-center rounded-full text-white shadow-lg ${listening ? 'bg-red-600' : status === 'thinking' ? 'animate-pulse bg-brand-700' : 'bg-brand-600 hover:bg-brand-700'} ${listening && speech.mode === 'native' ? 'animate-pulse' : ''}`}>
+            <Icon name={listening ? 'x' : 'mic'} className="h-12 w-12" />
           </button>
-          <p className="text-lg font-semibold" aria-live="polite">{status === 'listening' ? t('vo.listening') : status === 'asking' ? t('vo.asking') : status === 'tapAgain' ? t('vo.tapAgain') : text ? t('vo.again') : t('vo.tap')}</p>
+          <p className="text-lg font-semibold" aria-live="polite">{speechLabel(t, speech, text ? t('vo.again') : t('vo.tap'))}</p>
           {interim && <p className="text-center text-muted">{interim}</p>}
         </div>
       )}
-      <MicHelp status={status} os={os} onRetry={() => { micOk.current = false; void listen(); }} />
+      <MicHelp status={status} os={speech.os} onRetry={speech.retry} />
       {!text && <p className="mb-3 text-sm text-muted">{t('vo.example')}</p>}
 
       <label className="mb-1 block text-sm font-semibold" htmlFor="vo-text">{t('vo.heard')}</label>

@@ -72,6 +72,7 @@ export const mr = {
   'fab.voice': 'बोलून नोंदवा', 'fab.voiceHint': 'माईक दाबा आणि बोला', 'fab.scan': 'फोटोवरून बिल', 'fab.scanHint': 'यादीचा फोटो',
   'col.title': 'कोणाकडून पैसे आले?', 'home.todayCard': 'आजचा दुकान हिशोब', 'home.openStore': 'सविस्तर पाहा',
   // microphone permission
+  'vo.recording': 'ऐकत आहे… बोलून झाल्यावर थांबा, आपोआप पाठवले जाईल', 'vo.thinking': 'समजून घेत आहे…',
   'vo.busy': 'माईक दुसरे ॲप वापरत आहे (फोन कॉल, व्हिडिओ, रेकॉर्डिंग). ते बंद करा आणि पुन्हा दाबा.',
   'vo.lang2': 'ही भाषा या फोनवर ओळखता येत नाही. वर "हिंदी" किंवा "English" निवडा आणि पुन्हा बोला.',
   'vo.inapp': 'हे पान व्हॉट्सॲप / इन्स्टाग्राममधून उघडले आहे — तिथे माईक चालत नाही. वरच्या कोपऱ्यातील ⋯ दाबा → "सफारीमध्ये उघडा" (अँड्रॉइडवर "क्रोममध्ये उघडा").',
@@ -372,6 +373,7 @@ export const en: Record<Key, string> = {
   'fab.newCustomer': 'Add new customer', 'fab.newCustomerHint': 'Name, mobile, old dues', 'fab.editCustomer': 'Update a customer', 'fab.editCustomerHint': 'Fix name or mobile',
   'fab.voice': 'Speak to record', 'fab.voiceHint': 'Tap the mic and speak', 'fab.scan': 'Scan bill', 'fab.scanHint': 'Photo of a list',
   'col.title': 'Who paid?', 'home.todayCard': "Today's shop accounts", 'home.openStore': 'See details',
+  'vo.recording': 'Listening… stop talking and it is sent automatically', 'vo.thinking': 'Understanding…',
   'vo.busy': 'Another app is using the microphone (phone call, video, recording). Close it and tap again.',
   'vo.lang2': 'This phone cannot recognise this language. Choose "हिंदी" or "English" above and speak again.',
   'vo.inapp': 'This page was opened inside WhatsApp / Instagram — the mic does not work there. Tap ⋯ in the corner → "Open in Safari" (on Android "Open in Chrome").',

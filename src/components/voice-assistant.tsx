@@ -1,7 +1,7 @@
 'use client';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { MicHelp } from './mic-help';
+import { MicHelp, speechLabel } from './mic-help';
 import { Button, DueTag, Icon, Input, Segmented, useToast } from './ui';
 import type { CustomerRow } from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
@@ -119,14 +119,15 @@ export function VoiceAssistant() {
               options={[{ value: 'mr-IN', label: 'मराठी' }, { value: 'hi-IN', label: 'हिंदी' }, { value: 'en-IN', label: 'English' }]} />
             <div className="my-4 flex items-center gap-3">
               {speech.status !== 'unsupported' && speech.status !== 'checking' && (
-                <button type="button" onClick={listening ? speech.stop : () => { setHeard(''); setResult(null); void speech.start(); }} disabled={speech.status === 'asking'}
+                <button type="button" onClick={listening ? speech.stop : () => { setHeard(''); setResult(null); void speech.start(); }} disabled={speech.status === 'asking' || speech.status === 'thinking'}
                   aria-label={listening ? t('vo.stop') : t('vo.tap')}
-                  className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-full text-white shadow-lg ${listening ? 'animate-pulse bg-red-600' : 'bg-brand-600 hover:bg-brand-700'}`}>
+                  style={listening && speech.mode === 'cloud' ? { boxShadow: `0 0 0 ${4 + Math.round(speech.level * 20)}px rgba(220,38,38,0.25)` } : undefined}
+                  className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-full text-white shadow-lg ${listening ? 'bg-red-600' : speech.status === 'thinking' ? 'animate-pulse bg-brand-700' : 'bg-brand-600 hover:bg-brand-700'} ${listening && speech.mode === 'native' ? 'animate-pulse' : ''}`}>
                   <Icon name={listening ? 'x' : 'mic'} className="h-10 w-10" />
                 </button>
               )}
               <p className="text-lg font-semibold" aria-live="polite">
-                {listening ? (speech.interim || t('vo.listening')) : speech.status === 'asking' ? t('vo.asking') : speech.status === 'tapAgain' ? t('vo.tapAgain') : heard ? `“${heard}”` : t('va.say')}
+                {speechLabel(t, speech, heard ? `“${heard}”` : t('va.say'))}
               </p>
             </div>
             <MicHelp status={speech.status} os={speech.os} onRetry={speech.retry} />

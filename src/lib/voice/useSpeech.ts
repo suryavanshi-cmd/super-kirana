@@ -1,11 +1,24 @@
 'use client';
-// The phone's own speech recogniser (instant, no upload), with the microphone permission handled
-// for Android Chrome and iPhone Safari. Used by the bill screen for spoken changes.
+// Speech input for every mic in the app.
+//
+//   native  — the phone's own recogniser (Safari on iPhone, Chrome on Android/desktop): instant, free,
+//             nothing uploaded by us.
+//   cloud   — backup for browsers without one (Chrome/Firefox/Edge on iPhone, the iPhone home-screen
+//             app, in-app browsers), or when the native one is switched off / lacks the language:
+//             records one command on the phone, trims it, sends ~100–200 KB to our speech-to-text
+//             function (Gemini). Typically 1–2 s.
+//
+// Microphone permission is handled for Android Chrome and iPhone Safari (see ../mic.ts).
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { micState, platform, requestMic, type Platform } from '../mic';
+import { useSession } from '../session';
+import { cloudSpeechAvailable, transcribe } from './cloud';
+import { canRecord, recordCommand, type Recording } from './recorder';
 
-export type SpeechStatus = 'checking' | 'idle' | 'asking' | 'listening' | 'unsupported' | 'denied' | 'siri' | 'insecure' | 'tapAgain' | 'nospeech' | 'busy' | 'lang' | 'error';
+export type SpeechStatus = 'checking' | 'idle' | 'asking' | 'listening' | 'thinking' | 'unsupported' | 'denied' | 'siri' | 'insecure'
+  | 'tapAgain' | 'nospeech' | 'busy' | 'lang' | 'error';
 export type SpeechLang = 'mr-IN' | 'hi-IN' | 'en-IN';
+export type SpeechMode = 'native' | 'cloud';
 
 interface Rec {
   lang: string; interimResults: boolean; continuous: boolean; maxAlternatives: number;
@@ -25,30 +38,72 @@ export function savedLang(fallback: SpeechLang): SpeechLang {
   return fallback;
 }
 
-/** onFinal gets every alternative the recogniser offers for the sentence, best first. */
+/** onFinal gets every alternative for the sentence, best first. */
 export function useSpeech(lang: SpeechLang, onFinal: (alternatives: string[]) => void) {
+  const { shop } = useSession();
+  const shopId = shop?.id ?? null;
   const [status, setStatus] = useState<SpeechStatus>('checking');
   const [interim, setInterim] = useState('');
+  const [level, setLevel] = useState(0);
   const [os, setOs] = useState<Platform>('other');
+  const [mode, setMode] = useState<SpeechMode>('native');
   const rec = useRef<Rec | null>(null);
+  const recording = useRef<Recording | null>(null);
   const micOk = useRef(false);
   const final = useRef(onFinal);
   final.current = onFinal;
 
   useEffect(() => {
     setOs(platform());
-    setStatus(ctor() ? 'idle' : 'unsupported');
-    void micState().then((m) => { micOk.current = m === 'granted'; if (m === 'denied' && ctor()) setStatus('denied'); });
-    return () => rec.current?.abort();
-  }, []);
+    if (ctor()) { setMode('native'); setStatus('idle'); }
+    else if (canRecord() && shopId) {
+      setMode('cloud'); setStatus('checking');
+      void cloudSpeechAvailable(shopId).then((ok) => setStatus(ok ? 'idle' : 'unsupported'));
+    } else setStatus('unsupported');
+    void micState().then((m) => { micOk.current = m === 'granted'; if (m === 'denied') setStatus('denied'); });
+    if (ctor() && canRecord() && shopId) void cloudSpeechAvailable(shopId);   // warm the backup too
+    return () => { rec.current?.abort(); recording.current?.stop(); };
+  }, [shopId]);
+
+  /** The native recogniser cannot help here (off, language missing): use the backup from now on. */
+  const switchToCloud = useCallback(async (): Promise<boolean> => {
+    if (!canRecord() || !shopId || !(await cloudSpeechAvailable(shopId))) return false;
+    setMode('cloud');
+    return true;
+  }, [shopId]);
+
+  const startCloud = useCallback(() => {
+    if (!shopId) return;
+    setInterim(''); setLevel(0);
+    setStatus('listening');
+    const r = recordCommand((v) => setLevel(v));
+    recording.current = r;
+    void r.done.then(async (res) => {
+      recording.current = null;
+      setLevel(0);
+      if (res.error === 'denied') { setStatus('denied'); return; }
+      if (res.error) { setStatus('busy'); return; }
+      if (!res.wav) { setStatus('nospeech'); return; }
+      micOk.current = true;
+      setStatus('thinking');
+      try {
+        const text = await transcribe(res.wav, lang, shopId);
+        if (!text) { setStatus('nospeech'); return; }
+        setStatus('idle');
+        final.current([text]);
+      } catch (e) {
+        setStatus(e instanceof Error && e.message === 'TOO_MANY_ATTEMPTS' ? 'busy' : 'error');
+      }
+    });
+  }, [lang, shopId]);
 
   const start = useCallback(async () => {
+    if (mode === 'cloud') { startCloud(); return; }
     const C = ctor();
-    if (!C) { setStatus('unsupported'); return; }
+    if (!C) { if (await switchToCloud()) startCloud(); else setStatus('unsupported'); return; }
     rec.current?.abort();
     const ios = platform() === 'ios';
-    // iPhone: Safari asks for the microphone itself; calling start() right inside the tap is what
-    // iOS needs (an extra permission request first can make it refuse to start).
+    // iPhone: Safari asks for the microphone itself, and start() must run right inside the tap.
     if (!micOk.current && !ios) {
       setStatus('asking');
       const r = await requestMic();
@@ -67,18 +122,25 @@ export function useSpeech(lang: SpeechLang, onFinal: (alternatives: string[]) =>
       }
       setInterim(live);
     };
-    r.onerror = (e) => setStatus(
-      e.error === 'not-allowed' ? (micOk.current && ios ? 'tapAgain' : 'denied')
-        : e.error === 'service-not-allowed' ? (ios ? 'siri' : 'denied')
-          : e.error === 'no-speech' ? 'nospeech' : e.error === 'aborted' ? 'idle'
-            : e.error === 'audio-capture' ? 'busy' : e.error === 'language-not-supported' ? 'lang' : 'error');
+    r.onerror = (e) => {
+      if (e.error === 'service-not-allowed' || e.error === 'language-not-supported') {
+        // Dictation switched off on the iPhone, or this language not available on the phone:
+        // quietly use the backup; the next tap records with it.
+        void switchToCloud().then((ok) => setStatus(ok ? 'tapAgain' : e.error === 'service-not-allowed' ? (ios ? 'siri' : 'denied') : 'lang'));
+        return;
+      }
+      setStatus(e.error === 'not-allowed' ? (micOk.current && ios ? 'tapAgain' : 'denied')
+        : e.error === 'no-speech' ? 'nospeech' : e.error === 'aborted' ? 'idle'
+          : e.error === 'audio-capture' ? 'busy' : 'error');
+    };
     r.onend = () => { setInterim(''); setStatus((s) => (s === 'listening' ? 'idle' : s)); };
     rec.current = r;
     setStatus('listening');
     try { r.start(); } catch { setStatus('tapAgain'); }
-  }, [lang]);
+  }, [lang, mode, startCloud, switchToCloud]);
 
-  const stop = useCallback(() => rec.current?.stop(), []);
+  /** Native: stop listening. Cloud: finish the recording now and send it. */
+  const stop = useCallback(() => { rec.current?.stop(); recording.current?.stop(); }, []);
   const retry = useCallback(() => { micOk.current = false; void start(); }, [start]);
-  return { status, interim, os, start, stop, retry };
+  return { status, interim, level, os, mode, start, stop, retry };
 }
