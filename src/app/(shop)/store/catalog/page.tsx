@@ -85,14 +85,14 @@ export default function CatalogPage() {
       </div>
       {!cat.items && (cat.error ? <ErrorBox error={cat.error} onRetry={cat.retry} /> : <><p className="text-muted">{t('cat.loading')}</p><Skeleton lines={6} /></>)}
       {error && <ErrorBox error={error} notSaved />}
-      <ul className="divide-y divide-line" data-testid="catalog-list">
+      <ul className="divide-y divide-line overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(16,24,40,.08)]" data-testid="catalog-list">
         {results.slice(0, shown).map((i) => {
           const isAdded = added.has(i.ref);
           const on = picked.has(i.ref);
           const price = picked.get(i.ref) ?? '';
           const bad = on && !parseRupees(price).ok;
           return (
-            <li key={i.ref} className="py-2">
+            <li key={i.ref} className="px-3 py-2">
               <button type="button" disabled={isAdded} onClick={() => toggle(i)} aria-pressed={on}
                 className="flex min-h-14 w-full items-center gap-3 text-left disabled:opacity-60">
                 <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 ${on || isAdded ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-400'}`}>

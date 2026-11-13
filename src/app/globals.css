@@ -3,22 +3,33 @@
 
 @theme {
   --font-sans: "Noto Sans Devanagari Variable", "Noto Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --color-brand-50: #eefaf2;
-  --color-brand-100: #d6f3df;
-  --color-brand-200: #aee6c1;
-  --color-brand-500: #1a9c53;
-  --color-brand-600: #0f8043;
-  --color-brand-700: #0b6636;
-  --color-brand-800: #0a4f2b;
-  --color-ink: #10201a;
-  --color-muted: #55635c;
-  --color-line: #dfe5e1;
-  --color-due: #8a4b00;
-  --color-due-bg: #fff4dd;
+  /* Khata-style: deep blue app colour, red = you'll get (customer owes), green = you'll give / got. */
+  --color-brand-50: #eef3fd;
+  --color-brand-100: #d9e5fb;
+  --color-brand-200: #b3cbf6;
+  --color-brand-500: #2f6fe0;
+  --color-brand-600: #1d5bd6;
+  --color-brand-700: #1747ad;
+  --color-brand-800: #123a8c;
+  --color-ink: #121826;
+  --color-muted: #5b6475;
+  --color-line: #e3e7ee;
+  --color-surface: #f2f4f8;
+  --color-due: #c62828;
+  --color-due-bg: #fdecec;
+  --color-got: #1b8a4b;
+  --color-got-bg: #e7f6ed;
 }
 
 html { font-size: 17px; -webkit-text-size-adjust: 100%; }
-body { background: #fff; color: var(--color-ink); font-family: var(--font-sans); line-height: 1.5; }
+body { background: var(--color-surface); color: var(--color-ink); font-family: var(--font-sans); line-height: 1.5; }
+/* Smooth, app-like touch: no 300 ms tap delay, no grey tap flash, no rubber-band behind sheets. */
+html, body { overscroll-behavior-y: none; }
+a, button, [role="button"], label, summary { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+a, button { transition: background-color .12s ease, color .12s ease, transform .08s ease, box-shadow .12s ease; }
+button:active:not(:disabled), a:active { transform: scale(.98); }
+main > * { animation: page-in .16s ease-out both; }
+@keyframes page-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 input, select, textarea, button { font: inherit; }
 /* Amounts line up and never reflow between languages. */
 .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }

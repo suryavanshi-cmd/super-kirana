@@ -44,7 +44,7 @@ export default function BillReceiptPage() {
     <div>
       <PageHeader title={t('bill.receipt')} back="/home" />
       {reversed && <Notice tone="warn" icon="x"><b>{t('bill.reversed')}</b>{b.reversal_reason ? ` — ${b.reversal_reason}` : ''}</Notice>}
-      <article className="print-area rounded-2xl border border-line p-4" data-testid="receipt">
+      <article className="print-area rounded-2xl border border-line bg-white p-4" data-testid="receipt">
         <header className="border-b border-dashed border-slate-400 pb-3 text-center">
           <p className="text-xl font-bold">{shopName}</p>
           <p className="num mt-1 text-sm">{t('bill.number')}: <b>{b.invoice_no}</b> · {when}</p>
@@ -86,7 +86,7 @@ export default function BillReceiptPage() {
         <LinkButton href="/udhari" className="col-span-2"><Icon name="plus" className="h-5 w-5" />{t('bill.newAnother')}</LinkButton>
       </div>
       {b.payments.length > 0 && (
-        <ul className="no-print mt-4 divide-y divide-line rounded-2xl border border-line">
+        <ul className="no-print mt-4 divide-y divide-line rounded-2xl border border-line bg-white">
           {b.payments.map((p) => (
             <li key={p.id}><Link href={`/payments/${p.id}`} className="flex min-h-14 items-center justify-between gap-3 px-3 py-2 hover:bg-slate-50">
               <span><span className="font-semibold">{t(`pay.kind.${p.kind}`)} · {t(`method.${p.method}`)}</span>{p.status === 'reversed' && <span className="ml-2 text-sm text-muted">({t('rep.reversedTag')})</span>}</span>

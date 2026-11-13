@@ -46,11 +46,11 @@ export default function CustomerPage() {
         action={isOwner && <Button variant="ghost" onClick={() => setEditing(true)}>{t('c.edit')}</Button>} />
       <StaleNote show={q.stale} />
       {!c.is_active && <Notice tone="warn">{t('cust.inactiveNote')}</Notice>}
-      <Card className={c.balance_paise > 0 ? 'border-amber-200 bg-due-bg' : 'border-brand-100 bg-brand-50'}>
-        <p className={`flex items-center gap-1 text-sm font-semibold ${c.balance_paise > 0 ? 'text-due' : 'text-brand-800'}`}>
-          <Icon name={c.balance_paise > 0 ? 'clock' : 'check'} className="h-4 w-4" />{t('cust.balance')}
+      <Card>
+        <p className="text-sm font-semibold text-muted">
+          {c.balance_paise > 0 ? t('home.youGet') : c.balance_paise < 0 ? t('home.youGive') : t('cust.balance')}
         </p>
-        <p className="text-3xl font-bold" data-testid="customer-balance"><Money paise={c.balance_paise} /></p>
+        <p className={`text-3xl font-bold ${c.balance_paise > 0 ? 'text-due' : c.balance_paise < 0 ? 'text-got' : ''}`} data-testid="customer-balance"><Money paise={c.balance_paise} /></p>
         {c.mobile && <p className="num mt-1 text-sm text-muted">{c.mobile}</p>}
         <p className="text-xs text-muted">{t('cust.since')}: {formatDateTime(c.created_at, locale, shop.timezone, false)}</p>
       </Card>
@@ -64,9 +64,17 @@ export default function CustomerPage() {
               className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-brand-600 bg-white px-4 font-semibold text-brand-700 hover:bg-brand-50"><Icon name="share" className="h-5 w-5" />{t('cust.remind')}</a>
           : <Button variant="secondary" full className="mt-3" onClick={async () => { if ((await shareText(t('cust.remindShare'), text)) === 'copied') toast(t('c.copied')); }}><Icon name="share" className="h-5 w-5" />{t('cust.remindShare')}</Button>;
       })()}
+      {/* Khata style: the two everyday actions, fixed at the bottom in thumb reach. */}
+      <div className="no-print fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-3xl gap-3 border-t border-line bg-white p-3 shadow-[0_-2px_8px_rgba(16,24,40,.06)]"
+        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+        {c.is_active
+          ? <Link href={`/udhari?customer=${c.id}`} data-testid="you-gave" className="flex min-h-13 flex-1 items-center justify-center gap-1 rounded-xl bg-due px-3 py-3 text-base font-bold text-white">{t('cust.gave')} ₹</Link>
+          : <span className="flex min-h-13 flex-1 items-center justify-center rounded-xl bg-slate-200 px-3 py-3 font-bold text-muted">{t('cust.gave')} ₹</span>}
+        {c.balance_paise > 0
+          ? <Link href={`/customers/${c.id}/pay`} data-testid="you-got" className="flex min-h-13 flex-1 items-center justify-center gap-1 rounded-xl bg-got px-3 py-3 text-base font-bold text-white">{t('cust.got')} ₹</Link>
+          : <span className="flex min-h-13 flex-1 items-center justify-center rounded-xl bg-slate-200 px-3 py-3 font-bold text-muted">{t('cust.got')} ₹</span>}
+      </div>
       <div className="mt-4 grid grid-cols-2 gap-3">
-        {c.is_active ? <LinkButton href={`/udhari?customer=${c.id}`}><Icon name="plus" className="h-5 w-5" />{t('home.udhari')}</LinkButton> : <Button disabled>{t('home.udhari')}</Button>}
-        {c.balance_paise > 0 ? <LinkButton href={`/customers/${c.id}/pay`} variant="secondary"><Icon name="rupee" className="h-5 w-5" />{t('home.receive')}</LinkButton> : <Button variant="secondary" disabled>{t('home.receive')}</Button>}
         <LinkButton href={`/customers/${c.id}/ledger`} variant="secondary"><Icon name="list" className="h-5 w-5" />{t('cust.history')}</LinkButton>
         <LinkButton href={`/customers/${c.id}/ledger?share=1`} variant="secondary"><Icon name="share" className="h-5 w-5" />{t('cust.shareStatement')}</LinkButton>
       </div>
@@ -83,7 +91,7 @@ export default function CustomerPage() {
       </Section>
       <Section title={t('cust.unpaid')}>
         {c.unpaid_invoices.length === 0 && c.opening_outstanding_paise === 0 && <EmptyState icon="check" title={t('cust.noUnpaid')} />}
-        <ul className="divide-y divide-line rounded-2xl border border-line empty:hidden">
+        <ul className="divide-y divide-line rounded-2xl border border-line bg-white empty:hidden">
           {c.opening_outstanding_paise > 0 && (
             <li className="flex min-h-14 items-center justify-between gap-3 px-3 py-2"><span className="font-semibold">{t('entry.opening_balance')}</span><Money paise={c.opening_outstanding_paise} className="font-bold text-due" /></li>
           )}

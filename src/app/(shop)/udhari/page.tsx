@@ -97,7 +97,7 @@ function UdhariScreen() {
     <div>
       <PageHeader title={t('ud.title')} back="/home" />
       <button type="button" onClick={() => { setCustomerId(null); setPending(null); }} disabled={!!pending}
-        className="mb-4 flex min-h-16 w-full items-center gap-3 rounded-2xl border border-line p-3 text-left hover:border-brand-600" data-testid="ud-customer">
+        className="mb-4 flex min-h-16 w-full items-center gap-3 rounded-2xl border border-line bg-white p-3 text-left hover:border-brand-600" data-testid="ud-customer">
         <span className="min-w-0 flex-1"><span className="block text-sm text-muted">{t('bill.customer')}</span><span className="block truncate text-lg font-bold">{customer.name}</span></span>
         <DueTag paise={customer.balance_paise} />
         <span className="text-sm font-semibold text-brand-700">{t('c.edit')}</span>

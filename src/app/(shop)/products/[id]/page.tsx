@@ -72,7 +72,7 @@ export default function ProductEditPage() {
         <Field label={`${t('prod.pricePer')} ${t(`unit.${f.unit}`)}`} error={errs.price}>{(i, d) => <MoneyInput id={i} aria-describedby={d} value={f.price} onChange={set('price')} invalid={!!errs.price} />}</Field>
       </div>
       {!isNew && <Notice>{t('prod.priceNote')}</Notice>}
-      <details className="mb-4 rounded-2xl border border-line p-3">
+      <details className="mb-4 rounded-2xl border border-line bg-white p-3">
         <summary className="min-h-11 cursor-pointer py-2 font-semibold">{t('prod.moreFields')}</summary>
         <div className="mt-2">
           <Field label={t('prod.nameMr')} optional>{(i) => <Input id={i} value={f.name_mr} onChange={set('name_mr')} maxLength={120} lang="mr" autoComplete="off" />}</Field>

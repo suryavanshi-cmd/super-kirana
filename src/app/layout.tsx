@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: 'सुपर किराणा', statusBarStyle: 'default' },
   robots: { index: false, follow: false },
 };
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#0f8043' };
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#1747ad' };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

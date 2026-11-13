@@ -13,7 +13,7 @@ const ICON: Record<EntryType, string> = { opening_balance: 'clock', invoice: 'li
 export function ActivityList({ rows, timeZone }: { rows: Activity[]; timeZone: string }) {
   const { t, locale } = useI18n();
   return (
-    <ul className="divide-y divide-line rounded-2xl border border-line">
+    <ul className="divide-y divide-line rounded-2xl border border-line bg-white">
       {rows.map((e) => {
         const href = entryHref(e);
         const body = (

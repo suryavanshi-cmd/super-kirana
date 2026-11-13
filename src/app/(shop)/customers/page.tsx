@@ -28,10 +28,10 @@ function CustomerList() {
       {!list.data && <ErrorBox error={list.error} onRetry={list.reload} />}
       {list.data && list.data.length === 0 && <EmptyState icon="users" title={t('cust.none')} hint={t('cust.noneHint')} action={<LinkButton href="/customers/new">{t('cust.add')}</LinkButton>} />}
       {list.data && list.data.length > 0 && rows.length === 0 && <EmptyState icon="search" title={pickPay && !q ? t('pay.nothingDue') : t('cust.noMatch')} />}
-      <ul className="mt-2 divide-y divide-line">
+      <ul className="mt-2 divide-y divide-line overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(16,24,40,.08)]">
         {rows.map((c) => (
           <li key={c.id}>
-            <Link href={pickPay ? `/customers/${c.id}/pay` : `/customers/${c.id}`} className="flex min-h-16 items-center gap-3 py-2 hover:bg-slate-50">
+            <Link href={pickPay ? `/customers/${c.id}/pay` : `/customers/${c.id}`} className="flex min-h-16 items-center gap-3 px-3 py-2 hover:bg-slate-50">
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-lg font-bold text-brand-800" aria-hidden="true">{[...c.name][0]}</span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold">{c.name}{!c.is_active && <span className="ml-2 text-sm font-normal text-muted">({t('c.inactive')})</span>}</span>

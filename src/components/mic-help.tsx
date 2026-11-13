@@ -48,7 +48,7 @@ export function MicHelp({ status, os, onRetry, cause }: { status: Status; os: 'i
       {body}
       {showCause && <p data-testid="mic-cause" className="-mt-1 mb-2 break-words text-xs text-muted">{t('err.reason')}: {cause}</p>}
       {os === 'ios' && (
-        <details className="my-2 rounded-xl border border-line p-2 text-sm">
+        <details className="my-2 rounded-xl border border-line bg-white p-2 text-sm">
           <summary className="min-h-10 cursor-pointer font-semibold text-brand-700">{t('vo.helpTitle')}</summary>
           <p className="mt-1 whitespace-pre-line">{t('vo.checklistIos')}</p>
         </details>

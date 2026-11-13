@@ -20,10 +20,10 @@ export default function CollectPage() {
       <SearchBox value={q} onChange={setQ} placeholder={t('home.search')} autoFocus />
       {!customers.data && (customers.loading ? <Skeleton lines={4} /> : <ErrorBox error={customers.error} onRetry={customers.reload} />)}
       {customers.data && rows.length === 0 && <EmptyState icon="check" title={q.trim() ? t('cust.noMatch') : t('home.noPending')} />}
-      <ul className="mt-2 divide-y divide-line" data-testid="collect-list">
+      <ul className="mt-2 divide-y divide-line overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(16,24,40,.08)]" data-testid="collect-list">
         {rows.map((c) => (
           <li key={c.id}>
-            <Link href={`/customers/${c.id}/pay`} className="flex min-h-16 items-center justify-between gap-3 py-2 hover:bg-slate-50">
+            <Link href={`/customers/${c.id}/pay`} className="flex min-h-16 items-center justify-between gap-3 px-3 py-2 hover:bg-slate-50">
               <span className="min-w-0"><span className="block truncate font-semibold">{c.name}</span>{c.mobile && <span className="num block text-sm text-muted">{c.mobile}</span>}</span>
               <DueTag paise={c.balance_paise} />
             </Link>

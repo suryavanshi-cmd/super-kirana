@@ -209,7 +209,7 @@ function BillScreen() {
         <>
           {draft.source === 'ocr' && <Notice tone="warn" icon="camera">{t('bill.fromScan')}</Notice>}
           <button type="button" onClick={() => setPicking(true)} data-testid="pick-customer"
-            className="flex min-h-16 w-full items-center gap-3 rounded-2xl border border-line p-3 text-left hover:border-brand-600">
+            className="flex min-h-16 w-full items-center gap-3 rounded-2xl border border-line bg-white p-3 text-left hover:border-brand-600">
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-700"><Icon name="users" /></span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm text-muted">{t('bill.customer')}</span>
@@ -237,7 +237,7 @@ function BillScreen() {
             </div>
           )}
           {search.trim() && (
-            <ul className="mt-2 divide-y divide-line rounded-2xl border border-line" data-testid="product-results">
+            <ul className="mt-2 divide-y divide-line rounded-2xl border border-line bg-white" data-testid="product-results">
               {found.map((p) => (
                 <li key={p.id}>
                   <button type="button" onClick={() => addProduct(p)} className="flex min-h-14 w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-brand-50">
@@ -347,7 +347,7 @@ function BillScreen() {
             <Notice tone="warn">{t('pf.totalDiff', { a: rupees(draft.paperTotal), b: rupees(calc.totalPaise) })}</Notice>
           )}
           {(draft.changes?.length ?? 0) > 0 && (
-            <details className="mt-3 rounded-2xl border border-line p-3" data-testid="change-history">
+            <details className="mt-3 rounded-2xl border border-line bg-white p-3" data-testid="change-history">
               <summary className="min-h-10 cursor-pointer font-semibold">{t('ch.title', { n: draft.changes!.length })}</summary>
               <ol className="mt-2 space-y-2 text-sm">
                 {[...draft.changes!].reverse().map((ch, i) => (

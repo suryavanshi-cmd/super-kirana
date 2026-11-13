@@ -104,7 +104,7 @@ export default function ReportsPage() {
             <p className="mt-3 text-sm text-muted">{t('rep.cutoff')}</p>
             {r.days.length > 1 && (
               <Section title={t('rep.byDay')}>
-                <div className="overflow-x-auto rounded-2xl border border-line">
+                <div className="overflow-x-auto rounded-2xl border border-line bg-white">
                   <table className="w-full text-sm"><thead><tr className="bg-slate-50 text-left"><th className="p-2">{t('c.date')}</th><th className="p-2 text-right">{t('rep.netSales')}</th><th className="p-2 text-right">{t('rep.netCollected')}</th></tr></thead>
                     <tbody>{r.days.map((x) => <tr key={x.date} className="border-t border-line"><td className="p-2">{d(x.date)}</td><td className="num p-2 text-right"><Money paise={x.net_sales_paise} /></td><td className="num p-2 text-right"><Money paise={x.net_collections_paise} /></td></tr>)}</tbody></table>
                 </div>
@@ -114,7 +114,7 @@ export default function ReportsPage() {
           </>
         )}
         {tab === 'bills' && r && (r.bills.length === 0 ? <EmptyState icon="list" title={t('rep.noData')} /> : (
-          <ul className="divide-y divide-line rounded-2xl border border-line">
+          <ul className="divide-y divide-line rounded-2xl border border-line bg-white">
             {r.bills.map((b) => (
               <li key={b.id}><Link href={`/bills/${b.id}`} className="flex min-h-16 items-center justify-between gap-3 px-3 py-2 hover:bg-slate-50">
                 <span className="min-w-0"><span className="block truncate font-semibold">#{b.invoice_no} · {name(b.customer_name)}</span>
@@ -124,7 +124,7 @@ export default function ReportsPage() {
           </ul>
         ))}
         {tab === 'collections' && r && (r.payments.length === 0 ? <EmptyState icon="rupee" title={t('rep.noData')} /> : (
-          <ul className="divide-y divide-line rounded-2xl border border-line">
+          <ul className="divide-y divide-line rounded-2xl border border-line bg-white">
             {r.payments.map((p) => (
               <li key={p.id}><Link href={`/payments/${p.id}`} className="flex min-h-16 items-center justify-between gap-3 px-3 py-2 hover:bg-slate-50">
                 <span className="min-w-0"><span className="block truncate font-semibold">{name(p.customer_name)}</span>
@@ -136,7 +136,7 @@ export default function ReportsPage() {
         {tab === 'outstanding' && (!out.data ? (out.loading ? <Skeleton /> : <ErrorBox error={out.error} onRetry={out.reload} />) : out.data.length === 0 ? <EmptyState icon="check" title={t('cust.noUnpaid')} /> : (
           <>
             <Card className="mb-3 flex items-center justify-between border-amber-200 bg-due-bg"><span className="font-bold text-due">{t('rep.totalOutstanding')}</span><Money paise={out.data.reduce((s, x) => s + x.balance_paise, 0)} className="text-xl font-bold" /></Card>
-            <ul className="divide-y divide-line rounded-2xl border border-line">
+            <ul className="divide-y divide-line rounded-2xl border border-line bg-white">
               {out.data.map((x) => (
                 <li key={x.customer_id}><Link href={`/customers/${x.customer_id}`} className="flex min-h-16 items-center justify-between gap-3 px-3 py-2 hover:bg-slate-50">
                   <span className="min-w-0"><span className="block truncate font-semibold">{x.name}</span>

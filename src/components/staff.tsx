@@ -40,7 +40,7 @@ export function StaffManager({ shopId }: { shopId: string }) {
     <div>
       {!q.data && (q.loading ? <Skeleton lines={2} /> : <ErrorBox error={q.error} onRetry={q.reload} />)}
       {q.data && q.data.length === 0 && <EmptyState icon="users" title={t('set.noStaff')} />}
-      <ul className="divide-y divide-line rounded-2xl border border-line empty:hidden">
+      <ul className="divide-y divide-line rounded-2xl border border-line bg-white empty:hidden">
         {q.data?.map((m) => (
           <li key={m.user_id} className="p-3" data-testid="member">
             <div className="flex items-center justify-between gap-2">
@@ -101,7 +101,7 @@ export function AuditList({ rows, timeZone }: { rows: import('@/lib/api').AuditR
   const { t, locale } = useI18n();
   if (rows.length === 0) return <EmptyState icon="list" title={t('audit.none')} />;
   return (
-    <ul className="divide-y divide-line rounded-2xl border border-line text-sm">
+    <ul className="divide-y divide-line rounded-2xl border border-line bg-white text-sm">
       {rows.map((a) => (
         <li key={a.id} className="px-3 py-2">
           <p className="font-semibold">{`audit.a.${a.action}` in dictionaries['mr-IN'] ? t(`audit.a.${a.action}` as Key) : a.action}{a.shop_name ? ` · ${a.shop_name}` : ''}</p>

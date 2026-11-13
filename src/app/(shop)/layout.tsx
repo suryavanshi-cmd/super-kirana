@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { BottomTabs, showsTabs } from '@/components/bottom-tabs';
 import { DemoBanner } from '@/components/demo-banner';
 import { NavDrawer } from '@/components/nav-drawer';
 import { QuickAdd } from '@/components/quick-add';
@@ -17,6 +18,10 @@ export default function ShopLayout({ children }: { children: ReactNode }) {
   const { status, ctx, shop } = useSession();
   const { t, locale } = useI18n();
   const router = useRouter();
+  const path = usePathname();
+  const tabs = showsTabs(path);
+  // Screens with a bar fixed at the bottom (tabs, or a customer's You gave / You got buttons).
+  const bar = tabs || (/^\/customers\/[^/]+$/.test(path) && path !== '/customers/new');
   const online = useOnline();
   const [menu, setMenu] = useState(false);
   const closeMenu = useCallback(() => setMenu(false), []);
@@ -46,18 +51,18 @@ export default function ShopLayout({ children }: { children: ReactNode }) {
     return <main className="mx-auto max-w-3xl p-4"><Skeleton lines={5} /></main>;
   }
   return (
-    <div className="mx-auto min-h-dvh max-w-3xl">
-      <header className="no-print sticky top-0 z-30 flex items-center gap-2 border-b border-line bg-white px-2 py-2">
+    <div className="mx-auto min-h-dvh max-w-3xl bg-surface" style={{ '--fab-offset': bar ? '4.5rem' : '0px' } as CSSProperties}>
+      <header className="no-print sticky top-0 z-30 flex items-center gap-1 bg-brand-700 px-2 py-2 text-white shadow-md" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
         <button type="button" onClick={() => setMenu(true)} aria-label={t('nav.menu')} aria-expanded={menu} data-testid="menu-button"
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full hover:bg-slate-100"><Icon name="menu" className="h-7 w-7" /></button>
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full hover:bg-white/10"><Icon name="menu" className="h-7 w-7" /></button>
         <Link href="/home" className="flex min-w-0 flex-1 items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white"><Icon name="shop" className="h-5 w-5" /></span>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-700"><Icon name="shop" className="h-5 w-5" /></span>
           <span className="min-w-0">
-            <span className="block truncate font-bold leading-tight" data-testid="shop-name">{locale === 'mr-IN' ? shop.name_mr : shop.name_en}</span>
-            <span className="block truncate text-xs text-muted">{ctx.display_name} · {t(`role.${shop.role}`)}</span>
+            <span className="block truncate text-lg font-bold leading-tight" data-testid="shop-name">{locale === 'mr-IN' ? shop.name_mr : shop.name_en}</span>
+            <span className="block truncate text-xs text-white/80">{ctx.display_name} · {t(`role.${shop.role}`)}</span>
           </span>
         </Link>
-        <Link href="/settings" aria-label={t('nav.settings')} className="flex h-12 w-12 items-center justify-center rounded-full hover:bg-slate-100"><Icon name="cog" /></Link>
+        <Link href="/settings" aria-label={t('nav.settings')} className="flex h-12 w-12 items-center justify-center rounded-full hover:bg-white/10"><Icon name="cog" /></Link>
       </header>
       {!online && (
         <div role="status" className="no-print flex items-start gap-2 bg-due-bg px-4 py-2 text-sm font-semibold text-due">
@@ -65,9 +70,10 @@ export default function ShopLayout({ children }: { children: ReactNode }) {
         </div>
       )}
       <DemoBanner />
-      <main className="px-4 pb-28 pt-4">{children}</main>
+      <main className={`px-4 pt-4 ${bar ? 'pb-44' : 'pb-28'}`}>{children}</main>
       <QuickAdd />
       <VoiceAssistant />
+      <BottomTabs onMore={() => setMenu(true)} />
       <NavDrawer open={menu} onClose={closeMenu} />
     </div>
   );

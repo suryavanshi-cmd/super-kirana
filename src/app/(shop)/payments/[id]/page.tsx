@@ -30,7 +30,7 @@ export default function PaymentReceiptPage() {
     <div>
       <PageHeader title={t('pay.receipt')} back={p.customer_id ? `/customers/${p.customer_id}` : '/home'} />
       {p.status === 'reversed' && <Notice tone="warn" icon="x"><b>{t('pay.reversed')}</b>{p.reversal_reason ? ` — ${p.reversal_reason}` : ''}</Notice>}
-      <article className="print-area rounded-2xl border border-line p-4" data-testid="payment-receipt">
+      <article className="print-area rounded-2xl border border-line bg-white p-4" data-testid="payment-receipt">
         <header className="border-b border-dashed border-slate-400 pb-3 text-center">
           <p className="text-xl font-bold">{shopName}</p>
           <p className="num mt-1 text-sm">{t('pay.number')}: <b>{p.payment_no}</b> · {when}</p>

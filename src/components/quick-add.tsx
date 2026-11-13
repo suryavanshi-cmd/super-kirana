@@ -7,7 +7,7 @@ import { useI18n } from '@/lib/i18n';
 import { useSession } from '@/lib/session';
 
 // Screens where the round + button helps. Forms with their own bottom buttons are left alone.
-const SHOW_ON = [/^\/home$/, /^\/customers$/, /^\/customers\/[^/]+$/, /^\/customers\/[^/]+\/ledger$/, /^\/store(\/(summary|insights|inventory(\/[^/]+)?))?$/, /^\/reports$/, /^\/bills\/[^/]+$/, /^\/payments\/[^/]+$/];
+const SHOW_ON = [/^\/home$/, /^\/customers$/, /^\/customers\/[^/]+\/ledger$/, /^\/store(\/(summary|insights|inventory(\/[^/]+)?))?$/, /^\/reports$/, /^\/bills\/[^/]+$/, /^\/payments\/[^/]+$/];
 
 /** Round "+" button at the bottom right (in thumb reach) that opens the everyday actions. */
 export function QuickAdd() {
@@ -38,7 +38,7 @@ export function QuickAdd() {
       {open && <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setOpen(false)} aria-hidden="true" />}
       {open && (
         <div role="menu" aria-label={t('fab.title')} data-testid="quick-menu"
-          className="fixed bottom-24 right-4 z-50 w-[min(20rem,calc(100vw-2rem))] rounded-3xl bg-white p-2 shadow-2xl"
+          className="fixed bottom-[calc(var(--fab-offset,0px)+6rem)] right-4 z-50 w-[min(20rem,calc(100vw-2rem))] rounded-3xl bg-white p-2 shadow-2xl"
           style={{ marginBottom: 'env(safe-area-inset-bottom)' }}>
           <p className="px-3 pb-1 pt-2 text-sm font-bold text-muted">{t('fab.title')}</p>
           {actions.map((a) => (
@@ -52,7 +52,7 @@ export function QuickAdd() {
       )}
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="menu"
         aria-label={open ? t('fab.close') : t('fab.open')} data-testid="quick-add"
-        className={`fixed bottom-5 right-4 z-50 flex h-16 w-16 items-center justify-center rounded-full text-white shadow-xl transition-transform ${open ? 'rotate-45 bg-slate-700' : 'bg-brand-600 hover:bg-brand-700'}`}
+        className={`fixed bottom-[calc(var(--fab-offset,0px)+1.25rem)] right-4 z-50 flex h-16 w-16 items-center justify-center rounded-full text-white shadow-xl transition-transform ${open ? 'rotate-45 bg-slate-700' : 'bg-brand-600 hover:bg-brand-700'}`}
         style={{ marginBottom: 'env(safe-area-inset-bottom)' }}>
         <Icon name="plus" className="h-8 w-8" />
       </button>

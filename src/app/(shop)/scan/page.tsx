@@ -211,7 +211,7 @@ export default function ScanPage() {
   );
   const photo = imageUrl && (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={imageUrl} alt={t('scan.photo')} className="max-h-[70dvh] w-full rounded-2xl border border-line object-contain" />
+    <img src={imageUrl} alt={t('scan.photo')} className="max-h-[70dvh] w-full rounded-2xl border border-line bg-white object-contain" />
   );
 
   return (

@@ -72,7 +72,7 @@ export function LinkButton({ href, variant = 'primary', full, className, childre
 
 // ------------------------------------------------------------------ layout bits
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cx('rounded-2xl border border-line bg-white p-4', className)}>{children}</div>;
+  return <div className={cx('rounded-2xl border border-transparent bg-white p-4 shadow-[0_1px_3px_rgba(16,24,40,.08)]', className)}>{children}</div>;
 }
 export function Section({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   return (
@@ -163,10 +163,13 @@ export function Money({ paise, className }: { paise: number; className?: string 
 /** Pending balance: always a word + an icon + colour, never colour alone. */
 export function DueTag({ paise }: { paise: number }) {
   const { t } = useI18n();
-  if (paise <= 0) return <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-sm font-semibold text-brand-800"><Icon name="check" className="h-4 w-4" />{t('cust.noDue')}</span>;
+  // Khata style: the amount in colour, with what it means underneath.
+  if (paise === 0) return <span className="text-right text-sm font-semibold text-muted">{t('cust.noDue')}</span>;
+  const get = paise > 0;
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-due-bg px-2.5 py-1 text-sm font-semibold text-due">
-      <Icon name="clock" className="h-4 w-4" />{t('cust.due')} <Money paise={paise} />
+    <span className="text-right leading-tight">
+      <span className={`block text-lg font-bold ${get ? 'text-due' : 'text-got'}`}><Money paise={Math.abs(paise)} /></span>
+      <span className="block text-xs text-muted">{get ? t('home.youGet') : t('home.youGive')}</span>
     </span>
   );
 }
@@ -284,7 +287,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastCtx.Provider value={show}>
       {children}
-      <div aria-live="polite" className="no-print pointer-events-none fixed inset-x-0 bottom-24 z-[60] flex justify-center px-4">
+      <div aria-live="polite" className="no-print pointer-events-none fixed inset-x-0 bottom-[calc(var(--fab-offset,0px)+6rem)] z-[60] flex justify-center px-4">
         {text && <div className="flex items-center gap-2 rounded-full bg-ink px-4 py-3 text-sm font-semibold text-white shadow-lg"><Icon name="check" className="h-5 w-5" />{text}</div>}
       </div>
     </ToastCtx.Provider>

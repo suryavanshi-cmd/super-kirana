@@ -95,7 +95,7 @@ function VoiceScreen() {
       <label className="mb-1 block text-sm font-semibold" htmlFor="vo-text">{t('vo.heard')}</label>
       <textarea id="vo-text" data-testid="vo-text" value={text} rows={2} placeholder={t('vo.typeHere')} maxLength={300}
         onChange={(e) => { setText(e.target.value); setPickedId(null); setIntentOverride(null); setAdding(false); }}
-        className="mb-4 w-full rounded-xl border border-line p-3 text-lg focus:border-brand-600 focus:outline-none" />
+        className="mb-4 w-full rounded-xl border border-line bg-white p-3 text-lg focus:border-brand-600 focus:outline-none" />
 
       {draft && (
         <Card className="mb-4" data-testid="vo-result">

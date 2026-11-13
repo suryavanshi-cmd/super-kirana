@@ -57,7 +57,7 @@ export default function SyncPage() {
         {rows.length === 0 && <EmptyState icon="check" title={t('sync.none')} />}
         <ul className="space-y-3">
           {rows.map((p) => (
-            <li key={p.key} className="rounded-2xl border border-line p-3" data-testid="pending-row">
+            <li key={p.key} className="rounded-2xl border border-line bg-white p-3" data-testid="pending-row">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{t(`sync.kind.${p.fn}`)} · {p.label}</p>

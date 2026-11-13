@@ -65,7 +65,7 @@ function LedgerView() {
           <>
             {q.data.balance_before_paise !== 0 && <Card className="mb-2 flex justify-between"><span>{t('cust.openingBefore')}</span><Money paise={q.data.balance_before_paise} className="font-bold" /></Card>}
             {q.data.entries.length === 0 && <EmptyState icon="list" title={t('c.empty')} />}
-            <ul className="divide-y divide-line rounded-2xl border border-line empty:hidden">
+            <ul className="divide-y divide-line rounded-2xl border border-line bg-white empty:hidden">
               {q.data.entries.map((e) => {
                 const href = entryHref(e);
                 const body = (

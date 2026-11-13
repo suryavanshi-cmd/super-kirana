@@ -102,7 +102,7 @@ export function VoiceAssistant() {
   return (
     <div className="no-print">
       <button type="button" onClick={open ? () => setOpen(false) : openAndListen} aria-label={t('va.open')} data-testid="voice-anywhere"
-        className={`fixed ${path === '/store/catalog' ? 'bottom-24' : 'bottom-5'} left-4 z-50 flex h-16 w-16 items-center justify-center rounded-full text-white shadow-xl ${listening ? 'animate-pulse bg-red-600' : 'bg-ink hover:bg-slate-800'}`}
+        className={`fixed ${path === '/store/catalog' ? 'bottom-24' : 'bottom-[calc(var(--fab-offset,0px)+1.25rem)]'} left-4 z-50 flex h-16 w-16 items-center justify-center rounded-full text-white shadow-xl ${listening ? 'animate-pulse bg-red-600' : 'bg-ink hover:bg-slate-800'}`}
         style={{ marginBottom: 'env(safe-area-inset-bottom)' }}>
         <Icon name="mic" className="h-8 w-8" />
       </button>
@@ -139,7 +139,7 @@ export function VoiceAssistant() {
                 <ul className="space-y-2">
                   {pickList.map((c) => (
                     <li key={c.id}>
-                      <button type="button" className="flex min-h-14 w-full items-center justify-between gap-2 rounded-2xl border border-line p-3 text-left hover:border-brand-600"
+                      <button type="button" className="flex min-h-14 w-full items-center justify-between gap-2 rounded-2xl border border-line bg-white p-3 text-left hover:border-brand-600"
                         onClick={() => (result.kind === 'editCustomer' ? (isOwner ? go(editHref(c, result), c.name) : toast(t('st.ownerOnly'))) : go(`/customers/${c.id}`, c.name))}>
                         <span className="min-w-0"><span className="block truncate font-semibold">{c.name}</span>{c.mobile && <span className="num block text-sm text-muted">{c.mobile}</span>}</span>
                         <DueTag paise={c.balance_paise} />

@@ -37,13 +37,13 @@ export default function InventoryPage() {
       <StaleNote show={inv.stale} />
       {!inv.data && (inv.loading ? <Skeleton lines={6} /> : <ErrorBox error={inv.error} onRetry={inv.reload} />)}
       {inv.data && inv.data.length === 0 && <EmptyState icon="box" title={t('inv.empty')} hint={t('inv.emptyHint')} />}
-      <ul className="mt-2 divide-y divide-line" data-testid="inventory-list">
+      <ul className="mt-2 divide-y divide-line overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(16,24,40,.08)]" data-testid="inventory-list">
         {rows.map((p) => {
           const low = isLow(p);
           const tracked = num(p.stock) !== null;
           return (
             <li key={p.id}>
-              <Link href={`/store/inventory/${p.id}`} className={`flex min-h-16 items-center gap-3 py-2 hover:bg-slate-50 ${p.is_active ? '' : 'opacity-60'}`}>
+              <Link href={`/store/inventory/${p.id}`} className={`flex min-h-16 items-center gap-3 px-3 py-2 hover:bg-slate-50 ${p.is_active ? '' : 'opacity-60'}`}>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-semibold">{p.name}</span>
                   <span className="block truncate text-sm text-muted">
