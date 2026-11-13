@@ -1,4 +1,4 @@
-// Live end-to-end checks on the DEMO shop (never a real shop). Data created here is left in the demo
+// Live end-to-end checks (run on every app change) on the DEMO shop (never a real shop). Data created here is left in the demo
 // shop on purpose. Every step records how long it took, for the speed report.
 import { expect, test, type Page } from '@playwright/test';
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs';
