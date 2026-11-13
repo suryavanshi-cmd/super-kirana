@@ -7,6 +7,7 @@ import type { CustomerRow } from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
 import { useCustomers } from '@/lib/lists';
 import { paiseToInputText } from '@/lib/money';
+import { isStandalone, micState, platform, requestMic } from '@/lib/mic';
 import { parseVoice, type Intent, type VoiceDraft } from '@/lib/voice/parse';
 
 /**
@@ -14,7 +15,7 @@ import { parseVoice, type Intent, type VoiceDraft } from '@/lib/voice/parse';
  * उधारी or पैसे जमा screen. Nothing is saved here: the normal screen shows the numbers for a final check.
  */
 type Lang = 'mr-IN' | 'hi-IN' | 'en-IN';
-type Status = 'checking' | 'idle' | 'listening' | 'unsupported' | 'denied' | 'nospeech' | 'error';
+type Status = 'checking' | 'idle' | 'asking' | 'listening' | 'unsupported' | 'denied' | 'siri' | 'insecure' | 'tapAgain' | 'nospeech' | 'error';
 
 interface Recognition {
   lang: string; interimResults: boolean; continuous: boolean; maxAlternatives: number;
@@ -55,10 +56,14 @@ export default function VoicePage() {
   const [intentOverride, setIntentOverride] = useState<Intent | null>(null);
   const [adding, setAdding] = useState(false);
   const rec = useRef<Recognition | null>(null);
+  const micOk = useRef(false);
+  const os = typeof window === 'undefined' ? 'other' : platform();
 
   useEffect(() => {
     try { const v = localStorage.getItem(LANG_KEY); if (v === 'mr-IN' || v === 'hi-IN' || v === 'en-IN') setLang(v); } catch { /* private mode */ }
     setStatus(recognitionCtor() ? 'idle' : 'unsupported');     // known only in the browser
+    // If the phone already said "no" earlier, show how to allow it before the first tap.
+    void micState().then((m) => { micOk.current = m === 'granted'; if (m === 'denied' && recognitionCtor()) setStatus('denied'); });
     return () => rec.current?.abort();
   }, []);
 
@@ -70,10 +75,18 @@ export default function VoicePage() {
   const auto = top.length > 0 && top[0].score >= 0.85 && (top.length === 1 || top[0].score - top[1].score >= 0.15) ? top[0].customer : null;
   const chosen: CustomerRow | null = (pickedId && all.find((c) => c.id === pickedId)) || auto;
 
-  function listen() {
+  async function listen() {
     const Ctor = recognitionCtor();
     if (!Ctor) { setStatus('unsupported'); return; }
     rec.current?.abort();
+    if (!micOk.current) {
+      // First use: this tap shows the phone's own "allow microphone" prompt.
+      setStatus('asking');
+      const r = await requestMic();
+      if (r === 'denied') { setStatus('denied'); return; }
+      if (r === 'insecure') { setStatus('insecure'); return; }
+      micOk.current = true;
+    }
     const r = new Ctor();
     r.lang = lang; r.interimResults = true; r.continuous = false; r.maxAlternatives = 5;
     let finalText = '';
@@ -89,11 +102,15 @@ export default function VoicePage() {
       setInterim(live);
       if (finalText) { setText(finalText); setPickedId(null); setIntentOverride(null); setAdding(false); }
     };
-    r.onerror = (e) => setStatus(e.error === 'not-allowed' || e.error === 'service-not-allowed' ? 'denied' : e.error === 'no-speech' ? 'nospeech' : e.error === 'aborted' ? 'idle' : 'error');
+    r.onerror = (e) => setStatus(
+      e.error === 'not-allowed' ? (micOk.current && os === 'ios' ? 'tapAgain' : 'denied')
+        : e.error === 'service-not-allowed' ? (os === 'ios' ? 'siri' : 'denied')
+          : e.error === 'no-speech' ? 'nospeech' : e.error === 'aborted' ? 'idle' : 'error');
     r.onend = () => { setInterim(''); setStatus((s) => (s === 'listening' ? 'idle' : s)); };
     rec.current = r;
     setStatus('listening');
-    try { r.start(); } catch { setStatus('error'); }
+    // iOS sometimes needs a fresh tap after the permission prompt; ask for one instead of failing.
+    try { r.start(); } catch { setStatus('tapAgain'); }
   }
   const stop = () => rec.current?.stop();
 
@@ -119,17 +136,27 @@ export default function VoicePage() {
 
       {supported && (
         <div className="my-4 flex flex-col items-center gap-2">
-          <button type="button" onClick={status === 'listening' ? stop : listen} data-testid="mic"
+          <button type="button" onClick={status === 'listening' ? stop : () => void listen()} disabled={status === 'asking'} data-testid="mic"
             aria-label={status === 'listening' ? t('vo.stop') : t('vo.tap')}
             className={`flex h-28 w-28 items-center justify-center rounded-full text-white shadow-lg ${status === 'listening' ? 'animate-pulse bg-red-600' : 'bg-brand-600 hover:bg-brand-700'}`}>
             <Icon name={status === 'listening' ? 'x' : 'mic'} className="h-12 w-12" />
           </button>
-          <p className="text-lg font-semibold" aria-live="polite">{status === 'listening' ? t('vo.listening') : text ? t('vo.again') : t('vo.tap')}</p>
+          <p className="text-lg font-semibold" aria-live="polite">{status === 'listening' ? t('vo.listening') : status === 'asking' ? t('vo.asking') : status === 'tapAgain' ? t('vo.tapAgain') : text ? t('vo.again') : t('vo.tap')}</p>
           {interim && <p className="text-center text-muted">{interim}</p>}
         </div>
       )}
-      {status === 'unsupported' && <Notice tone="warn" icon="mic">{t('vo.unsupported')}</Notice>}
-      {status === 'denied' && <Notice tone="warn" icon="mic">{t('vo.denied')}</Notice>}
+      {status === 'unsupported' && <Notice tone="warn" icon="mic">{os === 'ios' && isStandalone() ? t('vo.iosPwa') : t('vo.unsupported')}</Notice>}
+      {status === 'denied' && (
+        <div data-testid="mic-help">
+          <Notice tone="warn" icon="mic">
+            <span className="block font-semibold">{t('vo.denied')}</span>
+            <span className="mt-1 block whitespace-pre-line">{os === 'ios' ? t('vo.stepsIos') : os === 'android' ? t('vo.stepsAndroid') : t('vo.stepsOther')}</span>
+          </Notice>
+          <Button full variant="secondary" onClick={() => { micOk.current = false; void listen(); }}>{t('vo.tryAgain')}</Button>
+        </div>
+      )}
+      {status === 'siri' && <Notice tone="warn" icon="mic"><span className="whitespace-pre-line">{t('vo.siri')}</span></Notice>}
+      {status === 'insecure' && <Notice tone="warn" icon="mic">{t('vo.insecure')}</Notice>}
       {status === 'nospeech' && <Notice>{t('vo.noSpeech')}</Notice>}
       {status === 'error' && <Notice tone="warn">{t('vo.error')}</Notice>}
       {!text && <p className="mb-3 text-sm text-muted">{t('vo.example')}</p>}

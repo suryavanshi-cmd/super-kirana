@@ -1,10 +1,11 @@
 'use client';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { DueTag, EmptyState, ErrorBox, Icon, Money, SearchBox, Section, Skeleton, StaleNote } from '@/components/ui';
 import { matches } from '@/lib/data';
-import { relativeDay, useI18n } from '@/lib/i18n';
+import { relativeDay, todayIn, useI18n } from '@/lib/i18n';
 import { useShop } from '@/lib/session';
+import { useInsights } from '@/lib/store';
 import { useCustomers } from '@/lib/lists';
 
 /** The whole app for a shopkeeper: two actions and the list of who owes what. */
@@ -22,6 +23,7 @@ export default function HomePage() {
 
   return (
     <div>
+      {isOwner && <TodayCard />}
       <div className="grid gap-3 sm:grid-cols-2">
         <Link href="/udhari" className="flex min-h-24 items-center gap-4 rounded-2xl bg-brand-600 p-4 text-white hover:bg-brand-700">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/15"><Icon name="plus" className="h-8 w-8" /></span>
@@ -36,13 +38,6 @@ export default function HomePage() {
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white"><Icon name="mic" className="h-6 w-6" /></span>
         <span className="min-w-0"><span className="block text-lg font-bold text-brand-800">{t('home.voice')}</span><span className="block truncate text-sm text-muted">{t('home.voiceHint')}</span></span>
       </Link>
-      {isOwner && (
-        <Link href="/store" className="mt-3 flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-white p-3 hover:border-brand-600" data-testid="store-entry">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800"><Icon name="chart" className="h-6 w-6" /></span>
-          <span className="min-w-0 flex-1"><span className="block text-lg font-bold text-brand-800">{t('home.store')}</span><span className="block truncate text-sm text-muted">{t('home.storeHint')}</span></span>
-          <Icon name="chevron" className="h-5 w-5 text-muted" />
-        </Link>
-      )}
 
       <Section title={t('home.customersDue')} action={list.data && total > 0 ? <span className="text-sm font-semibold text-due">{t('c.total')} <Money paise={total} /></span> : undefined}>
         <SearchBox value={q} onChange={setQ} placeholder={t('home.search')} />
@@ -68,5 +63,32 @@ export default function HomePage() {
         </ul>
       </Section>
     </div>
+  );
+}
+
+/** The owner's day at a glance, right on the first screen; tap for the full shop accounts. */
+function TodayCard() {
+  const { t } = useI18n();
+  const { shop } = useShop();
+  const today = todayIn(shop.timezone);
+  const q = useInsights(today, today);
+  const d = q.data;
+  const cell = (label: string, value: ReactNode, tone = '') => (
+    <div className="min-w-0"><p className="truncate text-xs text-white/80">{label}</p><p className={`truncate text-lg font-bold ${tone}`}>{value}</p></div>
+  );
+  return (
+    <Link href="/store" className="mb-3 block rounded-2xl bg-gradient-to-br from-brand-700 to-brand-600 p-4 text-white shadow-sm" data-testid="today-card">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="flex items-center gap-2 font-bold"><Icon name="chart" className="h-5 w-5" />{t('home.todayCard')}</span>
+        <span className="flex items-center text-sm font-semibold text-white/90">{t('home.openStore')}<Icon name="chevron" className="h-4 w-4" /></span>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {cell(t('st.sales'), d ? <Money paise={d.totals.net_sales_paise} /> : '—')}
+        {cell(t('st.collected'), d ? <Money paise={d.totals.net_collections_paise} /> : '—')}
+        {cell(t('st.bills'), d ? d.totals.bills : '—')}
+        {cell(t('st.dues'), d ? <Money paise={d.dues.total_paise} /> : '—')}
+      </div>
+      {d && d.low_stock.length > 0 && <p className="mt-2 inline-block rounded-full bg-white/20 px-2 py-0.5 text-xs font-bold">{t('st.lowStock', { n: d.low_stock.length })}</p>}
+    </Link>
   );
 }
