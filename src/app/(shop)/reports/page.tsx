@@ -39,7 +39,7 @@ function Summary({ s }: { s: DayTotals }) {
 
 export default function ReportsPage() {
   const { t, locale } = useI18n();
-  const { shop, isOwner } = useShop();
+  const { shop, isOwner, scope } = useShop();
   const tz = shop.timezone;
   const [tab, setTab] = useState<Tab>('summary');
   const [range, setRange] = useState<Range>('today');
@@ -48,10 +48,10 @@ export default function ReportsPage() {
   const dates: [string, string] = range === 'today' ? [todayIn(tz), todayIn(tz)] : range === 'yesterday' ? [todayIn(tz, -1), todayIn(tz, -1)]
     : range === 'week' ? [todayIn(tz, -6), todayIn(tz)] : range === 'month' ? [`${todayIn(tz).slice(0, 8)}01`, todayIn(tz)] : [from, to];
 
-  const today = useQuery(isOwner ? null : () => rpc<DailySummary>('get_shop_daily_summary', { p_shop_id: shop.id }), [shop.id, isOwner]);
+  const today = useQuery(isOwner ? null : () => rpc<DailySummary>('get_shop_daily_summary', { p_shop_id: shop.id }), [shop.id, isOwner], `${scope}daily`, { persist: false });
   const rep = useQuery(isOwner && tab !== 'outstanding' ? () => rpc<Report>('get_report', { p_shop_id: shop.id, p_from: dates[0], p_to: dates[1] }) : null,
-    [shop.id, isOwner, tab === 'outstanding', dates[0], dates[1]]);
-  const out = useQuery(isOwner && tab === 'outstanding' ? () => rpc<OutstandingRow[]>('get_outstanding_report', { p_shop_id: shop.id }) : null, [shop.id, isOwner, tab]);
+    [shop.id, isOwner, tab === 'outstanding', dates[0], dates[1]], `${scope}report:${dates[0]}:${dates[1]}`, { persist: false });
+  const out = useQuery(isOwner && tab === 'outstanding' ? () => rpc<OutstandingRow[]>('get_outstanding_report', { p_shop_id: shop.id }) : null, [shop.id, isOwner, tab], `${scope}outstanding`, { persist: false });
   const d = (iso: string) => formatDateTime(iso, locale, tz, false);
   const name = (n: string | null) => n ?? t('c.walkIn');
 

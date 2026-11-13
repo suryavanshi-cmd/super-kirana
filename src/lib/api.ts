@@ -1,6 +1,7 @@
 // Thin, typed access to the database functions and the auth-admin edge function.
 // Every failure becomes an AppError whose `kind` tells the UI whether the request certainly did
 // NOT happen ('app', 'auth') or whether its outcome is unknown ('network').
+import { invalidate } from './cache';
 import { supabase, SUPABASE_KEY, SUPABASE_URL } from './supabase';
 
 export type ErrorKind = 'app' | 'auth' | 'network' | 'server';
@@ -75,7 +76,16 @@ function isNetworkFailure(message: string): boolean {
 }
 const clip = (s: unknown) => (typeof s === 'string' ? s.replace(/\s+/g, ' ').trim().slice(0, 240) : '');
 
+const READ_ONLY = /^(get_|list_|my_|admin_list|search_|svc_)/;
+
 export async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
+  // A save may change any balance, list or total: shown answers are refetched on the next visit.
+  const write = !READ_ONLY.test(fn);
+  if (write) invalidate();
+  try { return await rpcCall<T>(fn, args); } finally { if (write) invalidate(); }
+}
+
+async function rpcCall<T>(fn: string, args: Record<string, unknown>): Promise<T> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new AppError('NETWORK', 'network', 'phone is offline', fn);
   let res;
   try {

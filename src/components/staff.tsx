@@ -13,7 +13,7 @@ export function StaffManager({ shopId }: { shopId: string }) {
   const { ctx } = useSession();
   const toast = useToast();
   const isAdmin = !!ctx?.is_platform_admin;
-  const q = useQuery(() => rpc<Member[]>('list_members', { p_shop_id: shopId }), [shopId]);
+  const q = useQuery(() => rpc<Member[]>('list_members', { p_shop_id: shopId }), [shopId], `members:${shopId}`, { persist: false });
   const [adding, setAdding] = useState(false);
   const [mode, setMode] = useState<'new' | 'existing'>('new');
   const [role, setRole] = useState<Role>('cashier');

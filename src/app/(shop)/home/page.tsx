@@ -2,7 +2,8 @@
 import Link from 'next/link';
 import { useMemo, useState, type ReactNode } from 'react';
 import { DueTag, EmptyState, ErrorBox, Icon, Money, SearchBox, Section, Skeleton, StaleNote } from '@/components/ui';
-import { matches } from '@/lib/data';
+import { matches, prefetch } from '@/lib/data';
+import { rpc } from '@/lib/api';
 import { relativeDay, todayIn, useI18n } from '@/lib/i18n';
 import { useShop } from '@/lib/session';
 import { useInsights } from '@/lib/store';
@@ -11,7 +12,7 @@ import { useCustomers } from '@/lib/lists';
 /** The whole app for a shopkeeper: two actions and the list of who owes what. */
 export default function HomePage() {
   const { t } = useI18n();
-  const { shop, isOwner } = useShop();
+  const { shop, isOwner, scope } = useShop();
   const list = useCustomers();
   const [q, setQ] = useState('');
   const rows = useMemo(() => {
@@ -50,7 +51,7 @@ export default function HomePage() {
         <ul className="mt-2 divide-y divide-line" data-testid="pending-list">
           {rows.map((c) => (
             <li key={c.id}>
-              <Link href={`/customers/${c.id}`} className="flex min-h-16 items-center gap-3 py-2 hover:bg-slate-50">
+              <Link href={`/customers/${c.id}`} onPointerDown={() => prefetch(`${scope}customer:${c.id}`, () => rpc('get_customer', { p_shop_id: shop.id, p_customer_id: c.id }), true)} className="flex min-h-16 items-center gap-3 py-2 hover:bg-slate-50">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-lg font-bold text-brand-800" aria-hidden="true">{[...c.name][0]}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-semibold">{c.name}</span>

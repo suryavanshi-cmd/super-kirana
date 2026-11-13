@@ -1,6 +1,7 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AppError, authAdmin, rpc, type Context, type Role, type ShopRef } from './api';
+import { clearMemoryCache } from './cache';
 import { idbClearAll } from './idb';
 import { useI18n } from './i18n';
 import { supabase } from './supabase';
@@ -26,6 +27,7 @@ const IDLE_LIMIT_MS = 12 * 60 * 60 * 1000;
 
 /** Removes everything this app stored on the device (except the language choice). */
 export async function wipeLocalData(): Promise<void> {
+  clearMemoryCache();
   await idbClearAll();
   for (const k of [K.ctx, K.shop, K.activity]) localStorage.removeItem(k);
 }
@@ -49,6 +51,18 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const last = localStorage.getItem(K.lastUser);
       if (last && last !== user.id) await wipeLocalData();
       localStorage.setItem(K.lastUser, user.id);
+      // Instant start: open the app at once with the last known access for this same user, and
+      // confirm it with the server in the background (a revoked user is signed out a moment later;
+      // the database itself still checks every read and write).
+      try {
+        const known = localStorage.getItem(K.ctx);
+        const parsed = known ? (JSON.parse(known) as Context) : null;
+        if (parsed?.user_id === user.id && !parsed.must_change_password) {
+          setCtx((c) => c ?? parsed);
+          setShopId((x) => x ?? localStorage.getItem(K.shop));
+          setStatus((st) => (st === 'loading' ? 'ready' : st));
+        }
+      } catch { /* damaged copy: wait for the server */ }
       try {
         const c = await rpc<Context>('my_context');
         localStorage.setItem(K.ctx, JSON.stringify(c));

@@ -14,11 +14,11 @@ interface PriceChange { id: number; old_price_paise: number | null; new_price_pa
 export default function ProductStockPage() {
   const { id } = useParams<{ id: string }>();
   const { t, locale } = useI18n();
-  const { shop } = useShop();
+  const { shop, scope } = useShop();
   const toast = useToast();
-  const q = useQuery(() => rpc<ProductStock>('get_product_stock', { p_shop_id: shop.id, p_product_id: id }), [shop.id, id]);
+  const q = useQuery(() => rpc<ProductStock>('get_product_stock', { p_shop_id: shop.id, p_product_id: id }), [shop.id, id], `${scope}stock:${id}`, { persist: false });
   const p = q.data;
-  const hist = useQuery(() => rpc<PriceChange[]>('get_price_history', { p_shop_id: shop.id, p_product_id: id }), [shop.id, id]);
+  const hist = useQuery(() => rpc<PriceChange[]>('get_price_history', { p_shop_id: shop.id, p_product_id: id }), [shop.id, id], `${scope}prices:${id}`, { persist: false });
   const [price, setPrice] = useState<string | null>(null);
   const [level, setLevel] = useState<string | null>(null);
   const [counted, setCounted] = useState('');

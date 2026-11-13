@@ -14,10 +14,10 @@ import { useShop } from '@/lib/session';
 export default function BillReceiptPage() {
   const { id } = useParams<{ id: string }>();
   const { t, locale } = useI18n();
-  const { shop, isOwner } = useShop();
+  const { shop, isOwner, scope } = useShop();
   const toast = useToast();
   // Receipts are built only from the posted server record — never from a local draft.
-  const q = useQuery(() => rpc<Invoice>('get_invoice', { p_shop_id: shop.id, p_invoice_id: id }), [shop.id, id]);
+  const q = useQuery(() => rpc<Invoice>('get_invoice', { p_shop_id: shop.id, p_invoice_id: id }), [shop.id, id], `${scope}invoice:${id}`, { persist: false });
   const [dialog, setDialog] = useState<'reverse' | 'return' | null>(null);
   const [key, setKey] = useState(newKey);
   const b = q.data;

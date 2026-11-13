@@ -32,8 +32,8 @@ export function useInventory(): Query<InventoryRow[]> {
 }
 
 export function useInsights(from: string, to: string): Query<Insights> {
-  const { shop } = useShop();
-  return useQuery(() => rpc<Insights>('get_insights', { p_shop_id: shop.id, p_from: from, p_to: to }), [shop.id, from, to]);
+  const { shop, scope } = useShop();
+  return useQuery(() => rpc<Insights>('get_insights', { p_shop_id: shop.id, p_from: from, p_to: to }), [shop.id, from, to], `${scope}insights:${from}:${to}`);
 }
 
 /** A quantity like 12.5 shown without needless zeros: "12.5", "3", "0.25". */

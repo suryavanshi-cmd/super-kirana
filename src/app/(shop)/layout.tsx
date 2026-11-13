@@ -7,7 +7,9 @@ import { NavDrawer } from '@/components/nav-drawer';
 import { QuickAdd } from '@/components/quick-add';
 import { VoiceAssistant } from '@/components/voice-assistant';
 import { Icon, Skeleton } from '@/components/ui';
-import { useOnline } from '@/lib/data';
+import { prefetch, useOnline } from '@/lib/data';
+import { rpc } from '@/lib/api';
+import { todayIn } from '@/lib/i18n';
 import { useI18n } from '@/lib/i18n';
 import { useSession } from '@/lib/session';
 
@@ -24,6 +26,21 @@ export default function ShopLayout({ children }: { children: ReactNode }) {
     else if (status === 'ready' && ctx?.must_change_password) router.replace('/change-password');
     else if (status === 'ready' && !shop) router.replace('/select-shop');
   }, [status, ctx, shop, router]);
+
+  // Warm the most-used screens right after the app opens, so tapping them is instant.
+  useEffect(() => {
+    if (status !== 'ready' || !ctx || !shop || ctx.must_change_password) return;
+    const scope = `${ctx.user_id}:${shop.id}:`;
+    const id = setTimeout(() => {
+      prefetch(`${scope}customers`, () => rpc('list_customers', { p_shop_id: shop.id }), true);
+      prefetch(`${scope}products`, () => rpc('list_products', { p_shop_id: shop.id }), true);
+      if (shop.role === 'owner') {
+        const d = todayIn(shop.timezone);
+        prefetch(`${scope}insights:${d}:${d}`, () => rpc('get_insights', { p_shop_id: shop.id, p_from: d, p_to: d }));
+      }
+    }, 300);
+    return () => clearTimeout(id);
+  }, [status, ctx, shop]);
 
   if (status !== 'ready' || !ctx || !shop || ctx.must_change_password) {
     return <main className="mx-auto max-w-3xl p-4"><Skeleton lines={5} /></main>;

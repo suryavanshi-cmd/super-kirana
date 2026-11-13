@@ -17,7 +17,7 @@ function ReceivePayment() {
   const router = useRouter();
   const toast = useToast();
   const online = useOnline();
-  const q = useQuery(() => rpc<CustomerDetail>('get_customer', { p_shop_id: shop.id, p_customer_id: id }), [shop.id, id]);
+  const q = useQuery(() => rpc<CustomerDetail>('get_customer', { p_shop_id: shop.id, p_customer_id: id }), [shop.id, id], `${scope}customer:${id}`);
   const spoken = useSearchParams().get('amount');     // from the voice screen
   const [amount, setAmount] = useState(() => (spoken && /^\d{1,9}(\.\d{1,2})?$/.test(spoken) ? spoken : ''));
   const [method, setMethod] = useState<Method>('cash');

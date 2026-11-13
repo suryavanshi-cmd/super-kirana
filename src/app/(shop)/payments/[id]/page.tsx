@@ -13,9 +13,9 @@ import { useShop } from '@/lib/session';
 export default function PaymentReceiptPage() {
   const { id } = useParams<{ id: string }>();
   const { t, locale } = useI18n();
-  const { shop, isOwner } = useShop();
+  const { shop, isOwner, scope } = useShop();
   const toast = useToast();
-  const q = useQuery(() => rpc<Payment>('get_payment', { p_shop_id: shop.id, p_payment_id: id }), [shop.id, id]);
+  const q = useQuery(() => rpc<Payment>('get_payment', { p_shop_id: shop.id, p_payment_id: id }), [shop.id, id], `${scope}payment:${id}`, { persist: false });
   const [open, setOpen] = useState(false);
   const [key, setKey] = useState(newKey);
   const p = q.data;
