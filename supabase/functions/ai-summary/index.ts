@@ -69,6 +69,9 @@ Deno.serve(async (req) => {
 
     const { data: allowed } = await svc.rpc('svc_rate_limit', { p_key: `ai:${ctx.user_id}`, p_max: 30, p_window_seconds: 3600 });
     if (!allowed) return json(429, { error: 'TOO_MANY_ATTEMPTS' });
+    // Demo shop: each AI call uses one of the day's demo actions (real shops: always true).
+    const { data: demoOk } = await svc.rpc('svc_demo_charge', { p_shop_id: b.shop_id });
+    if (demoOk === false) return json(429, { error: 'DEMO_LIMIT' });
 
     if (!b.from || !b.to || !DATE.test(b.from) || !DATE.test(b.to)) return json(400, { error: 'INVALID_RANGE' });
     const { data: ins, error: insErr } = await user.rpc('get_insights', { p_shop_id: b.shop_id, p_from: b.from, p_to: b.to });

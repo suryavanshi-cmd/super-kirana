@@ -91,6 +91,9 @@ Deno.serve(async (req) => {
 
     const { data: allowed } = await svc.rpc('svc_rate_limit', { p_key: `vision:${ctx.user_id}`, p_max: 300, p_window_seconds: 3600 });
     if (!allowed) return json(429, { error: 'TOO_MANY_ATTEMPTS' });
+    // Demo shop: each AI call uses one of the day's demo actions (real shops: always true).
+    const { data: demoOk } = await svc.rpc('svc_demo_charge', { p_shop_id: b.shop_id });
+    if (demoOk === false) return json(429, { error: 'DEMO_LIMIT' });
     const image = typeof b.image_base64 === 'string' ? b.image_base64 : '';
     if (!image || image.length > 4_000_000 || !/^[A-Za-z0-9+/=]+$/.test(image.slice(0, 200))) return json(400, { error: 'IMAGE_TOO_LARGE' });
     const mime = b.mime === 'image/png' ? 'image/png' : b.mime === 'image/webp' ? 'image/webp' : 'image/jpeg';

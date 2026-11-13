@@ -61,6 +61,9 @@ Deno.serve(async (req) => {
 
     const { data: allowed } = await svc.rpc('svc_rate_limit', { p_key: `stt:${ctx.user_id}`, p_max: 600, p_window_seconds: 3600 });
     if (!allowed) return json(429, { error: 'TOO_MANY_ATTEMPTS' });
+    // Demo shop: each AI call uses one of the day's demo actions (real shops: always true).
+    const { data: demoOk } = await svc.rpc('svc_demo_charge', { p_shop_id: b.shop_id });
+    if (demoOk === false) return json(429, { error: 'DEMO_LIMIT' });
     const audio = typeof b.audio_base64 === 'string' ? b.audio_base64 : '';
     // Must be a base64 WAV ("RIFF....WAVE" → "UklGR"), within size.
     if (!audio || audio.length > MAX_B64 || !audio.startsWith('UklGR') || !/^[A-Za-z0-9+/=]+$/.test(audio.slice(0, 400))) return json(400, { error: 'INVALID_AUDIO' });

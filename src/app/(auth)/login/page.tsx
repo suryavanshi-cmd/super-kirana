@@ -55,6 +55,7 @@ export default function LoginPage() {
       <Button type="submit" full busy={busy}>{busy ? t('login.signingIn') : t('login.submit')}</Button>
       <div className="mt-5 flex flex-col items-center gap-3">
         <Link href="/forgot" className="min-h-11 py-2 font-semibold text-brand-700 underline">{t('login.forgot')}</Link>
+        <Link href="/demo" className="min-h-11 py-2 font-semibold text-brand-700 underline" data-testid="demo-link">{t('demo.link')}</Link>
         {needsSetup && <Link href="/setup" className="min-h-11 py-2 font-semibold text-brand-700 underline">{t('login.setup')}</Link>}
       </div>
     </form>

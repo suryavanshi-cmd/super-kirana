@@ -1,6 +1,6 @@
 // auth-admin — the only place the service-role key is used. It never reaches the browser.
 //
-// Public actions:   login, setup-status, setup
+// Public actions:   login, setup-status, setup, demo-login
 // Signed-in actions: change-password, create-shop, add-member, reset-password
 //
 // Passwords are verified and stored only by Supabase Auth. This function never logs request
@@ -91,6 +91,8 @@ async function actor(req: Request): Promise<string> {
   if (!token || token === ANON) throw new Fail(401, 'NOT_AUTHENTICATED');
   const { data, error } = await svc.auth.getUser(token);
   if (error || !data.user) throw new Fail(401, 'NOT_AUTHENTICATED');
+  // The demo account may use the shop, but never change passwords, add staff or create shops.
+  if (await db<boolean>('svc_is_demo_user', { p_user_id: data.user.id })) throw new Fail(403, 'DEMO_READONLY');
   return data.user.id;
 }
 
@@ -108,6 +110,37 @@ async function login(req: Request, b: Record<string, unknown>) {
   if (!userId || !session) throw new Fail(401, 'INVALID_CREDENTIALS');
   await db('svc_log_auth', { p_user: userId, p_action: 'auth.login', p_details: {} });
   return session;
+}
+
+/**
+ * Demo: the right code opens the demo shop without a username or password.
+ * The code is compared as a SHA-256 hash; attempts are rate-limited per IP and overall. The demo
+ * account gets a fresh random password for each sign-in (never stored or shown), so nobody can
+ * sign in to it any other way.
+ */
+async function demoLogin(req: Request, b: Record<string, unknown>) {
+  await limit(`demo:ip:${clientIp(req)}`, 10, 900);
+  await limit('demo:all', 300, 3600);
+  const code = str(b.code, 64).toUpperCase().replace(/\s+/g, '');
+  if (!code) throw new Fail(401, 'INVALID_DEMO_CODE');
+  const check = await db<{ ok: boolean; user_id: string | null; shop_id: string | null } | null>('svc_demo_check', { p_code_hash: await sha(code) });
+  if (!check?.ok) throw new Fail(401, 'INVALID_DEMO_CODE');
+  let userId = check.user_id;
+  if (!userId) {
+    userId = await createIdentity(`D${crypto.randomUUID()}x9`);
+    try { await db('svc_demo_bootstrap', { p_user_id: userId }); }
+    catch (e) { await svc.auth.admin.deleteUser(userId); throw e; }
+  }
+  const email = await emailOf(userId);
+  if (!email) throw new Fail(500, 'SERVER_ERROR');
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const password = `D${crypto.randomUUID()}x9`;
+    const { error } = await svc.auth.admin.updateUserById(userId, { password });
+    if (error) throw new Fail(500, 'SERVER_ERROR');
+    const session = await passwordGrant(email, password);   // another demo sign-in at the same moment can win the race: retry
+    if (session) { await db('svc_log_auth', { p_user: userId, p_action: 'auth.demo_login', p_details: {} }); return session; }
+  }
+  throw new Fail(503, 'SERVER_ERROR');
 }
 
 async function setupStatus() {
@@ -210,6 +243,7 @@ Deno.serve(async (req) => {
     switch (b.action) {
       case 'login': return json(200, await login(req, b));
       case 'setup-status': return json(200, await setupStatus());
+      case 'demo-login': return json(200, await demoLogin(req, b));
       case 'setup': return json(200, await setup(req, b));
       case 'change-password': return json(200, await changePassword(req, b));
       case 'create-shop': return json(200, await createShop(req, b));

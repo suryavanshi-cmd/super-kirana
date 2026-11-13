@@ -67,6 +67,9 @@ Deno.serve(async (req) => {
 
     const { data: allowed } = await svc.rpc('svc_rate_limit', { p_key: `ocr:${ctx.user_id}`, p_max: 60, p_window_seconds: 3600 });
     if (!allowed) return json(429, { error: 'TOO_MANY_ATTEMPTS' });
+    // Demo shop: each cloud read uses one of the day's demo actions (real shops: always true).
+    const { data: demoOk } = await svc.rpc('svc_demo_charge', { p_shop_id: b.shop_id });
+    if (demoOk === false) return json(429, { error: 'DEMO_LIMIT' });
 
     const image = typeof b.image_base64 === 'string' ? b.image_base64 : '';
     // OCR.space free plan: 1 MB per file (base64 is ~4/3 of that).

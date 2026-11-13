@@ -14,6 +14,7 @@ interface Session {
   isOwner: boolean;
   offlineContext: boolean;           // context came from this device because the server was unreachable
   signIn: (username: string, password: string) => Promise<void>;
+  demoSignIn: (code: string) => Promise<void>;
   signOut: (reason?: 'idle') => Promise<void>;
   selectShop: (id: string | null) => void;
   refresh: () => Promise<void>;
@@ -109,6 +110,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     await load();
   }, [load]);
 
+  /** Demo code → the demo shop, in English. No username or password. */
+  const demoSignIn = useCallback(async (code: string) => {
+    const s = await authAdmin<{ access_token: string; refresh_token: string }>('demo-login', { code });
+    await wipeLocalData();
+    const { error } = await supabase().auth.setSession(s);
+    if (error) throw new AppError('INVALID_DEMO_CODE', 'auth');
+    setLocale('en-IN');
+    await load();
+  }, [load, setLocale]);
+
   const selectShop = useCallback((id: string | null) => {
     if (id) localStorage.setItem(K.shop, id); else localStorage.removeItem(K.shop);
     setShopId(id);
@@ -117,8 +128,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const value = useMemo<Session>(() => {
     const shops = ctx?.shops ?? [];
     const shop = shops.find((s) => s.id === shopId) ?? (shops.length === 1 ? shops[0] : null);
-    return { status, ctx, shop, role: shop?.role ?? null, isOwner: shop?.role === 'owner', offlineContext, signIn, signOut, selectShop, refresh: load };
-  }, [status, ctx, shopId, offlineContext, signIn, signOut, selectShop, load]);
+    return { status, ctx, shop, role: shop?.role ?? null, isOwner: shop?.role === 'owner', offlineContext, signIn, demoSignIn, signOut, selectShop, refresh: load };
+  }, [status, ctx, shopId, offlineContext, signIn, demoSignIn, signOut, selectShop, load]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

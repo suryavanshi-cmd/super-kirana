@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { DemoBanner } from '@/components/demo-banner';
 import { NavDrawer } from '@/components/nav-drawer';
 import { QuickAdd } from '@/components/quick-add';
 import { VoiceAssistant } from '@/components/voice-assistant';
@@ -46,6 +47,7 @@ export default function ShopLayout({ children }: { children: ReactNode }) {
           <Icon name="offline" className="h-5 w-5" />{t('sync.offlineBanner')}
         </div>
       )}
+      <DemoBanner />
       <main className="px-4 pb-28 pt-4">{children}</main>
       <QuickAdd />
       <VoiceAssistant />

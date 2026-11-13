@@ -80,7 +80,8 @@ export default function ScanPage() {
       void rpc('log_ocr_job', { p_shop_id: shop.id, p_provider: `gemini:${r.model}`.slice(0, 40), p_status: 'recognized', p_raw_text: r.lines.map((x) => x.heard).join('\n'),
         p_items: r.lines, p_mean_confidence: null }).catch(() => undefined);
       router.push('/bill');
-    } catch {
+    } catch (e) {
+      if (e instanceof Error && e.message === 'DEMO_LIMIT') { setError(t('err.DEMO_LIMIT')); setStage('unclear'); return; }
       // Gemini not reachable / not configured / over its limit: fall back to the older reader.
       setNote(t('scan.aiFailed'));
       setFast(false);

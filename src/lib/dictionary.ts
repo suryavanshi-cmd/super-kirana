@@ -41,6 +41,13 @@ export const mr = {
   'account.idle': 'बराच वेळ वापर नसल्यामुळे लॉगआउट झाले. पुन्हा लॉगिन करा.',
   'role.owner': 'मालक', 'role.cashier': 'रोखपाल', 'role.admin': 'प्रशासक',
   // home
+  // demo
+  'demo.link': 'डेमो पहा (लॉगिनशिवाय)', 'demo.title': 'डेमो दुकान', 'demo.intro': 'डेमो कोड टाका आणि सर्व सुविधांसह तयार डेमो दुकान उघडा. वापरकर्तानाव किंवा पासवर्ड लागत नाही.',
+  'demo.limitNote': 'डेमोमध्ये दररोज ठराविक नोंदी (बिल, ग्राहक, फोटो, एआय) करता येतात. नोंदी खऱ्या प्रमाणे सेव्ह होतात.', 'demo.code': 'डेमो कोड',
+  'demo.open': 'डेमो उघडा', 'demo.opening': 'उघडत आहे…', 'demo.back': 'लॉगिन पानावर परत', 'demo.left': 'डेमो दुकान · आज {n} / {m} नोंदी शिल्लक',
+  'demo.none': 'डेमो दुकान · आजच्या सर्व नोंदी वापरल्या. उद्या पुन्हा प्रयत्न करा.',
+  'err.DEMO_LIMIT': 'डेमोच्या आजच्या सर्व नोंदी वापरल्या. उद्या पुन्हा प्रयत्न करा.', 'err.DEMO_READONLY': 'डेमोमध्ये हे करता येत नाही.',
+  'err.INVALID_DEMO_CODE': 'डेमो कोड चुकीचा आहे.',
   // voice anywhere
   'va.open': 'बोलून सांगा', 'va.title': 'बोलून सांगा — काय करायचे?', 'va.say': 'माईक दाबा आणि सांगा', 'va.opening': '{n} उघडत आहे',
   'va.notUnderstood': 'समजले नाही. पुन्हा सांगा किंवा खाली लिहा.', 'va.examplesTitle': 'असे बोला:',
@@ -346,6 +353,12 @@ export const en: Record<Key, string> = {
   'account.logoutPending': 'Some entries have not been checked yet. Open "Sync status" first.',
   'account.idle': 'You were logged out after a long time without use. Please log in again.',
   'role.owner': 'Owner', 'role.cashier': 'Cashier', 'role.admin': 'Admin',
+  'demo.link': 'Try the demo (no login)', 'demo.title': 'Demo shop', 'demo.intro': 'Enter the demo code to open a ready-made demo shop with every feature. No username or password needed.',
+  'demo.limitNote': 'The demo allows a fixed number of actions per day (bills, customers, photos, AI). Everything you do is saved like the real app.', 'demo.code': 'Demo code',
+  'demo.open': 'Open the demo', 'demo.opening': 'Opening…', 'demo.back': 'Back to login', 'demo.left': 'Demo shop · {n} of {m} actions left today',
+  'demo.none': 'Demo shop · all of today\'s actions are used. Try again tomorrow.',
+  'err.DEMO_LIMIT': "All of today's demo actions are used. Try again tomorrow.", 'err.DEMO_READONLY': 'This is not available in the demo.',
+  'err.INVALID_DEMO_CODE': 'The demo code is not correct.',
   'va.open': 'Speak a command', 'va.title': 'Say what you want to do', 'va.say': 'Tap the mic and speak', 'va.opening': 'Opening {n}',
   'va.notUnderstood': 'Not understood. Say it again or type below.', 'va.examplesTitle': 'Try saying:',
   'va.ex1': '"open camera" / "today\'s summary" / "show analysis" / "pending payments"', 'va.ex2': '"new customer Ramesh Patil 9876543210"',
