@@ -28,7 +28,9 @@ test.afterAll(async ({}, info) => {
 
 test('1. demo code opens the demo shop in English', async () => {
   await lap('open demo page', () => page.goto('/demo'));
-  await page.locator('main input').first().fill(CODE);
+  const box = page.locator('main input').first();
+  await box.evaluate((el) => { (el as HTMLInputElement).type = 'password'; });   // keep the code out of screenshots
+  await box.fill(CODE);
   await lap('demo sign-in → home', async () => {
     await page.locator('main button[type="submit"]').click();
     await expect(page).toHaveURL(/\/home$/);

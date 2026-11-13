@@ -19,6 +19,8 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       DEMO_CODE: ${{ secrets.DEMO_CODE }}
+      LIVE_URL: ${{ secrets.LIVE_URL }}
+      VERCEL_BYPASS: ${{ secrets.VERCEL_BYPASS }}
     steps:
       - uses: actions/checkout@v4
       - name: Wait for the Vercel deployment and database migrations of this commit
@@ -58,7 +60,7 @@ jobs:
           state=$([ "${{ steps.run.outcome }}" = "success" ] && grep -q "0 failed" live-report/summary.txt && ! grep -q "not run" live-report/summary.txt && echo success || echo failure)
           gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state="$state" -f context=live-tests -f description="$summary" >/dev/null
           cat live-report/REPORT.md >> "$GITHUB_STEP_SUMMARY" || true
-          find live-report -name '*.zip' -delete; find live-report -name 'trace*' -prune -exec rm -rf {} + || true
+          find live-report -name 'error-context.md' -delete; find live-report -name '*.zip' -delete; find live-report -name 'trace*' -prune -exec rm -rf {} + || true
           git config user.name "live-tests"; git config user.email "live-tests@users.noreply.github.com"
           mkdir -p "/tmp/out/$GITHUB_SHA" && cp -r live-report/. "/tmp/out/$GITHUB_SHA/"
           git checkout -q --orphan live-test-results
