@@ -46,16 +46,16 @@ jobs:
           mkdir -p live-report
           node -e '
             const fs=require("fs"); const r=JSON.parse(fs.readFileSync("live-report/results.json","utf8"));
-            const rows=[]; let pass=0, fail=0;
-            const walk=(s,proj)=>{ for (const sp of s.specs||[]) for (const t of sp.tests) { const res=t.results.at(-1)||{}; const ok=res.status==="passed"; ok?pass++:fail++;
-              rows.push(`| ${t.projectName} | ${sp.title} | ${ok?"PASS":"FAIL"} | ${res.duration??""} | ${(res.error?.message||"").split("\n")[0].replace(/\|/g,"/").slice(0,180)} |`);} for (const c of s.suites||[]) walk(c); };
+            const rows=[]; let pass=0, fail=0, skip=0;
+            const walk=(s,proj)=>{ for (const sp of s.specs||[]) for (const t of sp.tests) { const res=t.results.at(-1)||{}; const ok=res.status==="passed"; const sk=res.status==="skipped"||t.status==="skipped"; ok?pass++:sk?skip++:fail++;
+              rows.push(`| ${t.projectName} | ${sp.title} | ${ok?"PASS":sk?"SKIPPED":"FAIL"} | ${res.duration??""} | ${(res.error?.message||"").split("\n")[0].replace(/\|/g,"/").slice(0,180)} |`);} for (const c of s.suites||[]) walk(c); };
             for (const s of r.suites) walk(s);
             const tm=fs.existsSync("live-report/timings.json")?fs.readFileSync("live-report/timings.json","utf8"):"{}";
-            fs.writeFileSync("live-report/REPORT.md", `# Live test report\n\nCommit ${process.env.GITHUB_SHA}\n\n**${pass} passed, ${fail} failed**\n\n| Device | Test | Result | ms | Error |\n|---|---|---|---|---|\n${rows.join("\n")}\n\n## Timings (ms)\n\n\`\`\`json\n${tm}\n\`\`\`\n`);
-            fs.writeFileSync("live-report/summary.txt", `${pass} passed, ${fail} failed`);
+            fs.writeFileSync("live-report/REPORT.md", `# Live test report\n\nCommit ${process.env.GITHUB_SHA}\n\n**${pass} passed, ${fail} failed, ${skip} skipped**\n\n| Device | Test | Result | ms | Error |\n|---|---|---|---|---|\n${rows.join("\n")}\n\n## Timings (ms)\n\n\`\`\`json\n${tm}\n\`\`\`\n`);
+            fs.writeFileSync("live-report/summary.txt", skip&&!pass&&!fail ? "not run: add the DEMO_CODE repository secret" : `${pass} passed, ${fail} failed${skip?`, ${skip} skipped`:""}`);
           ' || echo "no results" > live-report/summary.txt
           summary=$(cat live-report/summary.txt)
-          state=$([ "${{ steps.run.outcome }}" = "success" ] && echo success || echo failure)
+          state=$([ "${{ steps.run.outcome }}" = "success" ] && grep -q "0 failed" live-report/summary.txt && ! grep -q "not run" live-report/summary.txt && echo success || echo failure)
           gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state="$state" -f context=live-tests -f description="$summary" >/dev/null
           cat live-report/REPORT.md >> "$GITHUB_STEP_SUMMARY" || true
           find live-report -name '*.zip' -delete; find live-report -name 'trace*' -prune -exec rm -rf {} + || true
