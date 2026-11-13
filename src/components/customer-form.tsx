@@ -12,11 +12,11 @@ import { Button, ErrorBox, Field, Input, MoneyInput } from './ui';
 export interface CustomerFormValue { id?: string; name: string; mobile: string; notes: string; is_active?: boolean }
 
 /** Add or edit a customer. Editing never touches bills already posted (they keep their snapshot). */
-export function CustomerForm({ initial, onSaved, onCancel }: { initial?: CustomerFormValue; onSaved: (id: string, name: string) => void; onCancel?: () => void }) {
+export function CustomerForm({ initial, initialOpening, onSaved, onCancel }: { initial?: CustomerFormValue; initialOpening?: string; onSaved: (id: string, name: string) => void; onCancel?: () => void }) {
   const { t } = useI18n();
   const { shop, isOwner } = useShop();
   const [f, setF] = useState<CustomerFormValue>(initial ?? { name: '', mobile: '', notes: '' });
-  const [opening, setOpening] = useState('');
+  const [opening, setOpening] = useState(initialOpening ?? '');
   const [newId] = useState(newKey);     // stable id: a retry after a lost response cannot create a second customer
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<AppError | null>(null);

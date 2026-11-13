@@ -31,7 +31,8 @@ function latinSkeleton(s: string): string {
 }
 
 export function skeleton(s: string): string {
-  const sk = /[ऀ-ॿ]/.test(s) ? devanagariSkeleton(s) : latinSkeleton(s);
+  // An anusvara before p/b/m sounds like m: अंबरी ≈ "ambari".
+  const sk = /[ऀ-ॿ]/.test(s) ? devanagariSkeleton(s).replace(/n(?=[pbm])/g, 'm') : latinSkeleton(s);
   return sk.replace(/([a-z])\1+/g, '$1').replace(/\s+/g, ' ').trim();
 }
 

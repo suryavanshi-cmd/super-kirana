@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { CustomerForm } from '@/components/customer-form';
 import { Button, Card, Dialog, EmptyState, ErrorBox, Field, Icon, LinkButton, Money, MoneyInput, Notice, PageHeader, Row, Section, Skeleton, StaleNote, useToast } from '@/components/ui';
@@ -17,7 +17,10 @@ export default function CustomerPage() {
   const { shop, isOwner, scope } = useShop();
   const toast = useToast();
   const q = useQuery(() => rpc<CustomerDetail>('get_customer', { p_shop_id: shop.id, p_customer_id: id }), [shop.id, id], `${scope}customer:${id}`);
-  const [editing, setEditing] = useState(false);
+  const sp = useSearchParams();      // "?edit=1&mobile=…" when the change was spoken
+  const [editing, setEditing] = useState(sp.get('edit') === '1' && isOwner);
+  const spokenName = (sp.get('name') ?? '').slice(0, 120);
+  const spokenMobile = (sp.get('mobile') ?? '').replace(/[^0-9+ -]/g, '').slice(0, 15);
   const [openingOpen, setOpeningOpen] = useState(false);
   const [opening, setOpening] = useState('');
   const [openingKey, setOpeningKey] = useState(newKey);
@@ -96,7 +99,7 @@ export default function CustomerPage() {
       </Section>
       {c.notes && <Section title={t('cust.notes')}><Card>{c.notes}</Card></Section>}
       <Dialog open={editing} title={t('cust.edit')} onClose={() => setEditing(false)}>
-        <CustomerForm initial={{ id: c.id, name: c.name, mobile: c.mobile ?? '', notes: c.notes ?? '', is_active: c.is_active }}
+        <CustomerForm initial={{ id: c.id, name: spokenName || c.name, mobile: spokenMobile || (c.mobile ?? ''), notes: c.notes ?? '', is_active: c.is_active }}
           onCancel={() => setEditing(false)} onSaved={() => { setEditing(false); toast(t('cust.updated')); void q.reload(); }} />
       </Dialog>
       <Dialog open={openingOpen} title={t('cust.setOpening')} onClose={() => setOpeningOpen(false)}

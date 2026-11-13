@@ -41,6 +41,12 @@ export const mr = {
   'account.idle': 'बराच वेळ वापर नसल्यामुळे लॉगआउट झाले. पुन्हा लॉगिन करा.',
   'role.owner': 'मालक', 'role.cashier': 'रोखपाल', 'role.admin': 'प्रशासक',
   // home
+  // voice anywhere
+  'va.open': 'बोलून सांगा', 'va.title': 'बोलून सांगा — काय करायचे?', 'va.say': 'माईक दाबा आणि सांगा', 'va.opening': '{n} उघडत आहे',
+  'va.notUnderstood': 'समजले नाही. पुन्हा सांगा किंवा खाली लिहा.', 'va.examplesTitle': 'असे बोला:',
+  'va.ex1': '"कॅमेरा उघडा" / "आजचा सारांश" / "विश्लेषण दाखवा" / "बाकी यादी"', 'va.ex2': '"नवीन ग्राहक रमेश पाटील 9876543210"',
+  'va.ex3': '"सुरेश पाटीलचा मोबाईल 9822012345 करा"', 'va.ex4': '"सुरेश भटचे खाते दाखवा"', 'va.ex5': '"सुरेश भट 2000 चा किराणा, नो पेमेंट"',
+  'va.ex6': 'बिल उघडे असताना: "साखर 52 रुपये करा", "शेंगदाणे काढा"',
   // spoken bill changes, photo flags, change and price history
   'bv.open': 'बोलून बदला', 'bv.title': 'बोलून बिल बदला', 'bv.hint': 'उदा. "साखर 52 रुपये करा", "तूर डाळ 2 किलो", "शेंगदाणे काढा", "पोहे 1 किलो जोडा"',
   'bv.tap': 'माईक दाबा आणि बदल सांगा', 'bv.listening': 'ऐकत आहे… बदल सांगा', 'bv.type': 'किंवा इथे लिहा', 'bv.apply': 'लागू करा',
@@ -333,6 +339,11 @@ export const en: Record<Key, string> = {
   'account.logoutPending': 'Some entries have not been checked yet. Open "Sync status" first.',
   'account.idle': 'You were logged out after a long time without use. Please log in again.',
   'role.owner': 'Owner', 'role.cashier': 'Cashier', 'role.admin': 'Admin',
+  'va.open': 'Speak a command', 'va.title': 'Say what you want to do', 'va.say': 'Tap the mic and speak', 'va.opening': 'Opening {n}',
+  'va.notUnderstood': 'Not understood. Say it again or type below.', 'va.examplesTitle': 'Try saying:',
+  'va.ex1': '"open camera" / "today\'s summary" / "show analysis" / "pending payments"', 'va.ex2': '"new customer Ramesh Patil 9876543210"',
+  'va.ex3': '"Suresh Patil mobile change 9822012345"', 'va.ex4': '"show Suresh Bhatt account"', 'va.ex5': '"Suresh Bhatt 2000 kirana no payment"',
+  'va.ex6': 'With a bill open: "sugar 52 rupees", "remove peanuts"',
   'bv.open': 'Change by voice', 'bv.title': 'Change the bill by voice', 'bv.hint': 'e.g. "sugar 52 rupees", "toor dal 2 kg", "remove peanuts", "add poha 1 kg"',
   'bv.tap': 'Tap the mic and say the change', 'bv.listening': 'Listening… say the change', 'bv.type': 'Or type here', 'bv.apply': 'Apply',
   'bv.done': '{n} changes made', 'bv.undo': 'Undo', 'bv.notUnderstood': 'Not understood: "{t}"', 'bv.close': 'Close',

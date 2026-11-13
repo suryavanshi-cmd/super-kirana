@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { NavDrawer } from '@/components/nav-drawer';
 import { QuickAdd } from '@/components/quick-add';
+import { VoiceAssistant } from '@/components/voice-assistant';
 import { Icon, Skeleton } from '@/components/ui';
 import { useOnline } from '@/lib/data';
 import { useI18n } from '@/lib/i18n';
@@ -47,6 +48,7 @@ export default function ShopLayout({ children }: { children: ReactNode }) {
       )}
       <main className="px-4 pb-28 pt-4">{children}</main>
       <QuickAdd />
+      <VoiceAssistant />
       <NavDrawer open={menu} onClose={closeMenu} />
     </div>
   );

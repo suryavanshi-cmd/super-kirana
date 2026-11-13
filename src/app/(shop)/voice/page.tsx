@@ -1,6 +1,6 @@
 'use client';
-import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { CustomerForm } from '@/components/customer-form';
 import { Button, Card, DueTag, ErrorBox, Icon, Money, Notice, PageHeader, Row, Segmented, Skeleton } from '@/components/ui';
 import type { CustomerRow } from '@/lib/api';
@@ -44,13 +44,14 @@ function bestOf(alternatives: string[], customers: CustomerRow[]): string {
 
 const LANG_KEY = 'sk.voiceLang';
 
-export default function VoicePage() {
+function VoiceScreen() {
   const { t, locale } = useI18n();
   const router = useRouter();
   const customers = useCustomers();
   const [lang, setLang] = useState<Lang>(locale === 'en-IN' ? 'en-IN' : 'mr-IN');
   const [status, setStatus] = useState<Status>('checking');
-  const [text, setText] = useState('');
+  const said = useSearchParams().get('text');     // a sentence spoken from the mic on another screen
+  const [text, setText] = useState((said ?? '').slice(0, 300));
   const [interim, setInterim] = useState('');
   const [pickedId, setPickedId] = useState<string | null>(null);
   const [intentOverride, setIntentOverride] = useState<Intent | null>(null);
@@ -226,3 +227,5 @@ export default function VoicePage() {
     </div>
   );
 }
+
+export default function VoicePage() { return <Suspense fallback={<Skeleton lines={4} />}><VoiceScreen /></Suspense>; }

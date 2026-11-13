@@ -2,6 +2,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BillVoice } from '@/components/bill-voice';
+import { BILL_EVENT, type BillEventDetail } from '@/components/voice-assistant';
 import { CustomerForm } from '@/components/customer-form';
 import { failedText, UnknownOutcome } from '@/components/outcome';
 import { Button, Card, Dialog, DueTag, EmptyState, ErrorBox, Field, Icon, Input, LinkButton, Money, MoneyInput, Notice, PageHeader, Row, SearchBox, Segmented, Select, Skeleton, useToast } from '@/components/ui';
@@ -11,7 +12,7 @@ import { calcBill, calcLine, clearDraft, emptyDraft, invoiceItems, lineFromProdu
 import { useI18n } from '@/lib/i18n';
 import { useCustomers, useProducts } from '@/lib/lists';
 import { compatibleUnits, formatPaise, paiseToInputText, type Unit } from '@/lib/money';
-import type { BillOp } from '@/lib/voice/billcmd';
+import { parseBillCommand, type BillOp } from '@/lib/voice/billcmd';
 import { send, type Pending } from '@/lib/mutations';
 import { useShop } from '@/lib/session';
 
@@ -40,6 +41,12 @@ function BillScreen() {
   const [undo, setUndo] = useState<{ lines: Line[]; label: string } | null>(null);
   const [savingPrice, setSavingPrice] = useState<string | null>(null);
   const priceAtFocus = useRef<{ id: string; price: string } | null>(null);
+  const fromGlobalMic = useRef<(d: BillEventDetail) => void>(() => undefined);
+  useEffect(() => {
+    const on = (e: Event) => fromGlobalMic.current((e as CustomEvent<BillEventDetail>).detail);
+    window.addEventListener(BILL_EVENT, on);
+    return () => window.removeEventListener(BILL_EVENT, on);
+  }, []);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => { void loadDraft(scope).then(setDraft); }, [scope]);
@@ -120,6 +127,16 @@ function BillScreen() {
     update((d) => ({ ...d, lines, changes: log(d, how, `"${heard}" → ${notes.join('; ')}`) }));
     setUndo({ lines: before, label: t('bv.done', { n: notes.length }) });
   }
+  // The mic at the bottom of every screen: on this screen it edits the open bill.
+  fromGlobalMic.current = (detail) => {
+    const lines = draft.lines.map((l) => ({ id: l.id, name: l.name, productId: l.productId, unit: l.unit, priceUnit: l.priceUnit }));
+    let best: { text: string; ops: BillOp[] } = { text: '', ops: [] };
+    for (const a of detail.alternatives) { const r = parseBillCommand(a, lines, products.data ?? []); if (r.ops.length > best.ops.length) best = { text: a, ops: r.ops }; }
+    if (!best.ops.length) return;
+    applyOps(best.ops, best.text, 'voice');
+    detail.handled = true;
+    detail.summary = t('bv.done', { n: best.ops.length });
+  };
   function undoLast() {
     if (!undo) return;
     const prev = undo.lines;
