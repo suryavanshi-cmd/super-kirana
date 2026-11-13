@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
-import { AppError } from '@/lib/api';
+import { AppError, reportError } from '@/lib/api';
+import type { Key } from '@/lib/dictionary';
 import { errorKey, useI18n } from '@/lib/i18n';
 import { formatPaise, parseRupees } from '@/lib/money';
 import { paiseInWords } from '@/lib/words';
@@ -196,21 +197,38 @@ export function EmptyState({ icon = 'list', title, hint, action }: { icon?: stri
     </div>
   );
 }
-/** Explains what happened and — for writes — states plainly that nothing was saved. */
+/** Explains what happened, the actual reason (step, status, what the server said) and a reference. */
 export function ErrorBox({ error, onRetry, notSaved }: { error: AppError | string | null; onRetry?: () => void; notSaved?: boolean }) {
   const { t } = useI18n();
+  const [copied, setCopied] = useState(false);
+  useEffect(() => { if (error && typeof error !== 'string') reportError(error); }, [error]);
   if (!error) return null;
   const text = typeof error === 'string' ? error : t(errorKey(error.code));
+  const cause = typeof error === 'string' ? '' : error.reason || (errorKey(error.code) === 'err.UNKNOWN' ? error.code : '');
+  const ref = typeof error === 'string' ? '' : error.ref;
+  const copy = () => { void navigator.clipboard?.writeText(`${text}\n${t('err.reason')}: ${cause || '-'}\n${t('err.ref')}: ${ref}`).then(() => setCopied(true), () => undefined); };
   return (
     <div role="alert" data-testid="error" className="my-3 flex items-start gap-3 rounded-2xl border border-red-300 bg-red-50 p-3 text-red-900">
       <Icon name="alert" className="mt-0.5" />
       <div className="min-w-0 flex-1">
         <p className="font-semibold">{text}</p>
         {notSaved && <p className="text-sm">{t('err.notSaved')}</p>}
+        {cause && <p data-testid="error-cause" className="mt-1 break-words text-sm"><span className="font-semibold">{t('err.reason')}:</span> {cause}</p>}
+        {ref && (
+          <p className="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-red-800">
+            <span>{t('err.ref')}: <span className="font-mono">{ref}</span></span>
+            <button type="button" onClick={copy} className="min-h-9 font-semibold underline">{copied ? t('err.copied') : t('err.copy')}</button>
+          </p>
+        )}
         {onRetry && <button type="button" onClick={onRetry} className="mt-1 min-h-11 font-semibold underline">{t('c.retry')}</button>}
       </div>
     </div>
   );
+}
+/** One line for toasts: the message plus the actual reason. */
+export function errorLine(t: (k: Key) => string, e: unknown): string {
+  if (e instanceof AppError) return [t(errorKey(e.code)), e.reason].filter(Boolean).join(' — ');
+  return `${t('err.UNKNOWN')} — ${e instanceof Error ? e.message : String(e)}`.slice(0, 300);
 }
 export function Notice({ tone = 'info', icon, children }: { tone?: 'info' | 'warn' | 'ok'; icon?: string; children: ReactNode }) {
   const tones = { info: 'border-slate-300 bg-slate-50 text-ink', warn: 'border-amber-300 bg-due-bg text-due', ok: 'border-brand-200 bg-brand-50 text-brand-800' };

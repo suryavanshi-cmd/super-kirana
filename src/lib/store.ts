@@ -1,13 +1,12 @@
 'use client';
 // Shop accounts: inventory, stock-in, insights and the daily summary (owner-only screens).
 import { useEffect, useState } from 'react';
-import { AppError, rpc } from './api';
+import { AppError, callFunction, rpc } from './api';
 import type { DayTotals } from './api';
 import { useQuery, type Query } from './data';
 import type { Unit } from './money';
 import { formatPaise } from './money';
 import { useShop } from './session';
-import { supabase, SUPABASE_KEY, SUPABASE_URL } from './supabase';
 
 export interface InventoryRow {
   id: string; name: string; name_en: string | null; name_mr: string | null; unit: Unit;
@@ -89,18 +88,12 @@ export function searchCatalog(items: CatalogItem[], q: string, category: string 
 }
 
 // ------------------------------------------------------------------ AI summary (optional)
-export async function aiSummary(body: Record<string, unknown>): Promise<{ text: string } | { error: string }> {
-  const { data } = await supabase().auth.getSession();
+export async function aiSummary(body: Record<string, unknown>): Promise<{ text: string } | { error: string; err?: AppError }> {
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/ai-summary`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${data.session?.access_token ?? ''}` },
-      body: JSON.stringify(body), signal: AbortSignal.timeout(45_000),
-    });
-    const out = (await res.json().catch(() => ({}))) as { text?: string; error?: string; configured?: boolean };
-    if (res.ok) return { text: out.text ?? '' };
-    return { error: typeof out.error === 'string' && /^[A-Z_]+$/.test(out.error) ? out.error : 'AI_PROVIDER_ERROR' };
-  } catch {
-    return { error: 'NETWORK' };
+    const out = await callFunction<{ text?: string }>('ai-summary', body, 45_000);
+    return { text: out.text ?? '' };
+  } catch (e) {
+    const err = e instanceof AppError ? e : new AppError('UNKNOWN', 'server', String(e), 'ai-summary');
+    return { error: err.code, err };
   }
 }

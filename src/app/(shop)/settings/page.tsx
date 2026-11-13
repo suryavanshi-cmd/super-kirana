@@ -32,6 +32,7 @@ export default function SettingsPage() {
             {(ctx?.shops.length ?? 0) > 1 && <Button variant="secondary" onClick={() => { selectShop(null); router.push('/select-shop'); }}>{t('shopSelect.switch')}</Button>}
             {ctx?.is_platform_admin && <LinkButton href="/admin" variant="secondary"><Icon name="shop" className="h-5 w-5" />{t('set.admin')}</LinkButton>}
             {unchecked > 0 && <LinkButton href="/sync" variant="secondary">{t('set.sync')}</LinkButton>}
+            <LinkButton href="/settings/problems" variant="secondary"><Icon name="alert" className="h-5 w-5" />{t('err.logTitle')}</LinkButton>
             <Button variant="danger" onClick={() => setLogout(true)}>{t('account.logout')}</Button>
           </div>
         </Card>

@@ -18,6 +18,13 @@ const ENV_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
 // Fast first; the next models are tried only if one is unavailable or overloaded.
 const MODELS = (Deno.env.get('GEMINI_VISION_MODEL') ?? 'gemini-2.5-flash,gemini-flash-latest,gemini-2.5-flash-lite,gemini-flash-lite-latest').split(',').map((s) => s.trim()).filter(Boolean);
 const API = 'https://generativelanguage.googleapis.com/v1beta/models';
+/** Gemini's own reason, short and without the key, e.g. "429 RESOURCE_EXHAUSTED: Quota exceeded …". */
+function geminiReason(model: string, status: number, body: string): string {
+  let msg = body;
+  try { const j = JSON.parse(body) as { error?: { status?: string; message?: string } }; if (j.error) msg = `${j.error.status ?? ''}: ${j.error.message ?? ''}`; } catch { /* plain text */ }
+  return `${model} ${status} ${msg}`.replace(/AIza[0-9A-Za-z_-]+/g, '[key]').replace(/\s+/g, ' ').slice(0, 220);
+}
+
 const UNITS = ['kg', 'g', 'litre', 'ml', 'packet', 'piece', 'dozen'] as const;
 type Unit = (typeof UNITS)[number];
 const cors = {
@@ -86,7 +93,7 @@ Deno.serve(async (req) => {
     if (!(ctx.shops as { id: string }[]).some((s) => s.id === b.shop_id)) return json(403, { error: 'FORBIDDEN' });
     const svc = createClient(URL_, SERVICE, { auth: { persistSession: false } });
     const key = await aiKey(svc);
-    if (!key) return json(503, { error: 'NOT_CONFIGURED' });
+    if (!key) return json(503, { error: 'NOT_CONFIGURED', detail: 'GEMINI_API_KEY is not set (Supabase secret or Vault gemini_api_key)' });
     if (b.probe) return json(200, { configured: true });
 
     const { data: allowed } = await svc.rpc('svc_rate_limit', { p_key: `vision:${ctx.user_id}`, p_max: 300, p_window_seconds: 3600 });
@@ -113,27 +120,36 @@ Deno.serve(async (req) => {
     ].join('\n');
 
     let out: AiOut | null = null, modelUsed = '', busy = false;
+    const reasons: string[] = [];
     for (const model of MODELS) {
       const body: Record<string, unknown> = {
         contents: [{ role: 'user', parts: [{ inline_data: { mime_type: mime, data: image } }, { text: prompt }] }],
         generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: SCHEMA, maxOutputTokens: 4096,
           ...(model.startsWith('gemini-2.5') ? { thinkingConfig: { thinkingBudget: 0 } } : {}) },
       };
-      const res = await fetch(`${API}/${encodeURIComponent(model)}:generateContent`, {
+      let res: Response;
+      try {
+        res = await fetch(`${API}/${encodeURIComponent(model)}:generateContent`, {
         method: 'POST', headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' },
         body: JSON.stringify(body), signal: AbortSignal.timeout(25_000),
       });
+      } catch (e) {   // this model timed out or could not be reached: try the next one
+        reasons.push(`${model}: ${e instanceof Error ? e.name : 'fetch failed'}`);
+        continue;
+      }
+
       if (!res.ok) {   // note why (no image, no key) and try the next model
-        const why = await res.text().catch(() => '');
-        console.error('gemini', model, res.status, why.slice(0, 300).replace(/AIza[0-9A-Za-z_-]+/g, '[key]'));
+        const why = geminiReason(model, res.status, await res.text().catch(() => ''));
+        console.error('gemini', why);
+        reasons.push(why);
         if (res.status === 429) busy = true;
         continue;
       }
       const raw = await res.json() as { candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[] };
       const text = (raw.candidates?.[0]?.content?.parts ?? []).filter((p) => !p.thought).map((p) => p.text ?? '').join('');
-      try { out = JSON.parse(text) as AiOut; modelUsed = model; break; } catch { continue; }
+      try { out = JSON.parse(text) as AiOut; modelUsed = model; break; } catch { reasons.push(`${model}: reply was not valid JSON`); continue; }
     }
-    if (!out) return json(busy ? 429 : 502, { error: busy ? 'AI_BUSY' : 'AI_PROVIDER_ERROR' });
+    if (!out) return json(busy ? 429 : 502, { error: busy ? 'AI_BUSY' : 'AI_PROVIDER_ERROR', step: 'gemini', detail: reasons.join(' | ').slice(0, 450) || 'no model gave an answer' });
 
     const lines = (out.items ?? []).slice(0, 150).map((it) => {
       const flags: string[] = [];
@@ -169,7 +185,8 @@ Deno.serve(async (req) => {
 
     return json(200, { lines, total_paise: paise(out.total ?? null), model: modelUsed, ms: Date.now() - started });
   } catch (e) {
-    console.error('bill-vision failed', e instanceof Error ? e.name : 'error');
-    return json(502, { error: 'AI_PROVIDER_ERROR' });
+    const why = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+    console.error('bill-vision failed', why);
+    return json(502, { error: 'AI_PROVIDER_ERROR', step: 'internal', detail: why.replace(/AIza[0-9A-Za-z_-]+/g, '[key]').slice(0, 300) });
   }
 });

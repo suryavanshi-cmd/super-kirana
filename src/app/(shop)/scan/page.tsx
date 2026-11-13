@@ -2,7 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Card, EmptyState, ErrorBox, Icon, Input, MoneyInput, Notice, PageHeader, Select } from '@/components/ui';
-import { rpc } from '@/lib/api';
+import { AppError, reportError, rpc } from '@/lib/api';
 import { useOnline } from '@/lib/data';
 import type { Key } from '@/lib/dictionary';
 import { lineId, loadDraft, saveDraft, type Line } from '@/lib/draft';
@@ -83,12 +83,12 @@ export default function ScanPage() {
     } catch (e) {
       if (e instanceof Error && e.message === 'DEMO_LIMIT') { setError(t('err.DEMO_LIMIT')); setStage('unclear'); return; }
       // Gemini not reachable / not configured / over its limit: fall back to the older reader.
-      setNote(t('scan.aiFailed'));
+      setNote(e instanceof AppError && e.reason ? `${t('scan.aiFailed')} (${t('err.reason')}: ${e.reason})` : t('scan.aiFailed'));
       setFast(false);
       try {
         const r = await recognizeBest(file, shop.id, setProgress);
         toReview(r.text, r.lines, r.provider, r.confidence);
-      } catch { setError(t('scan.unclear')); setStage('unclear'); }
+      } catch (e2) { reportError(e2, 'scan/device'); setError(`${t('scan.unclear')} (${t('err.reason')}: ${e2 instanceof Error ? e2.message : String(e2)})`); setStage('unclear'); }
     }
   }
   function toReview(text: string, lines: { text: string; confidence: number | null }[] | undefined, provider: string, confidence: number | null) {
@@ -102,7 +102,7 @@ export default function ScanPage() {
     try {
       const r = await recognizeBest(image, shop.id, setProgress);
       toReview(r.text, r.lines, r.provider, r.confidence);
-    } catch { setError(t('scan.unclear')); setStage('unclear'); }
+    } catch (e) { reportError(e, 'scan/read'); setError(`${t('scan.unclear')} (${t('err.reason')}: ${e instanceof Error ? e.message : String(e)})`); setStage('unclear'); }
   }
 
   const patch = (id: string, p: Partial<DraftItem>, clear: Flag[] = []) =>

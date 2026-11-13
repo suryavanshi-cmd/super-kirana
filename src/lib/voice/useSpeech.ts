@@ -11,6 +11,7 @@
 // Microphone permission is handled for Android Chrome and iPhone Safari (see ../mic.ts).
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { micState, platform, requestMic, type Platform } from '../mic';
+import { AppError } from '../api';
 import { useSession } from '../session';
 import { cloudSpeechAvailable, transcribe } from './cloud';
 import { canRecord, recordCommand, type Recording } from './recorder';
@@ -47,6 +48,7 @@ export function useSpeech(lang: SpeechLang, onFinal: (alternatives: string[]) =>
   const [level, setLevel] = useState(0);
   const [os, setOs] = useState<Platform>('other');
   const [mode, setMode] = useState<SpeechMode>('native');
+  const [cause, setCause] = useState('');
   const rec = useRef<Rec | null>(null);
   const recording = useRef<Recording | null>(null);
   const micOk = useRef(false);
@@ -82,7 +84,7 @@ export function useSpeech(lang: SpeechLang, onFinal: (alternatives: string[]) =>
       recording.current = null;
       setLevel(0);
       if (res.error === 'denied') { setStatus('denied'); return; }
-      if (res.error) { setStatus('busy'); return; }
+      if (res.error) { setCause(`recorder: ${res.error}`); setStatus('busy'); return; }
       if (!res.wav) { setStatus('nospeech'); return; }
       micOk.current = true;
       setStatus('thinking');
@@ -93,6 +95,7 @@ export function useSpeech(lang: SpeechLang, onFinal: (alternatives: string[]) =>
         final.current([text]);
       } catch (e) {
         const code = e instanceof Error ? e.message : '';
+        setCause(e instanceof AppError ? [e.reason, `#${e.ref}`].filter(Boolean).join(' ') : code);
         setStatus(code === 'DEMO_LIMIT' ? 'demo' : code === 'AI_BUSY' || code === 'TOO_MANY_ATTEMPTS' ? 'quota' : 'error');
       }
     });
@@ -130,18 +133,19 @@ export function useSpeech(lang: SpeechLang, onFinal: (alternatives: string[]) =>
         void switchToCloud().then((ok) => setStatus(ok ? 'tapAgain' : e.error === 'service-not-allowed' ? (ios ? 'siri' : 'denied') : 'lang'));
         return;
       }
+      setCause(`speech: ${e.error}`);
       setStatus(e.error === 'not-allowed' ? (micOk.current && ios ? 'tapAgain' : 'denied')
         : e.error === 'no-speech' ? 'nospeech' : e.error === 'aborted' ? 'idle'
           : e.error === 'audio-capture' ? 'busy' : 'error');
     };
     r.onend = () => { setInterim(''); setStatus((s) => (s === 'listening' ? 'idle' : s)); };
     rec.current = r;
-    setStatus('listening');
+    setStatus('listening'); setCause('');
     try { r.start(); } catch { setStatus('tapAgain'); }
   }, [lang, mode, startCloud, switchToCloud]);
 
   /** Native: stop listening. Cloud: finish the recording now and send it. */
   const stop = useCallback(() => { rec.current?.stop(); recording.current?.stop(); }, []);
   const retry = useCallback(() => { micOk.current = false; void start(); }, [start]);
-  return { status, interim, level, os, mode, start, stop, retry };
+  return { status, interim, level, os, mode, cause, start, stop, retry };
 }

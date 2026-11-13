@@ -22,9 +22,12 @@ const cors = {
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 
+/** A failure with its actual reason (`detail`) and the step that failed. Never holds a password. */
 class Fail extends Error {
-  constructor(public status: number, public code: string) { super(code); }
+  constructor(public status: number, public code: string, public detail?: string, public step?: string) { super(code); }
 }
+const why = (e: { message?: string; code?: string; status?: number } | null | undefined) =>
+  [e?.status, e?.code, e?.message].filter((x) => x !== undefined && x !== null && x !== '').join(' ').slice(0, 240);
 
 const svc: SupabaseClient = createClient(URL_, SERVICE, { auth: { persistSession: false, autoRefreshToken: false } });
 
@@ -32,9 +35,9 @@ async function db<T = unknown>(fn: string, args: Record<string, unknown>): Promi
   const { data, error } = await svc.rpc(fn, args);
   if (error) {
     // Application errors arrive as P0001 with the code in `message`; anything else is internal.
-    if (error.code === 'P0001' && /^[A-Z_]+$/.test(error.message)) throw new Fail(400, error.message);
-    console.error('db error', fn, error.code);
-    throw new Fail(500, 'SERVER_ERROR');
+    if (error.code === 'P0001' && /^[A-Z_]+$/.test(error.message)) throw new Fail(400, error.message, undefined, fn);
+    console.error('db error', fn, error.code, error.message);
+    throw new Fail(500, 'SERVER_ERROR', `database ${fn}: ${why(error)}`, fn);
   }
   return data as T;
 }
@@ -82,7 +85,7 @@ async function createIdentity(password: string): Promise<string> {
   const { data, error } = await svc.auth.admin.createUser({
     email: `${crypto.randomUUID()}@${LOGIN_DOMAIN}`, password, email_confirm: true,
   });
-  if (error || !data.user) { console.error('createUser failed', error?.status); throw new Fail(500, 'SERVER_ERROR'); }
+  if (error || !data.user) { console.error('createUser failed', why(error)); throw new Fail(500, 'SERVER_ERROR', `creating the sign-in account failed: ${why(error) || 'no user returned'}`, 'create-user'); }
   return data.user.id;
 }
 
@@ -137,19 +140,19 @@ async function demoLogin(req: Request, b: Record<string, unknown>) {
       // Another first sign-in created it a moment earlier: use that account, drop ours.
       await svc.auth.admin.deleteUser(fresh);
       userId = (await db<{ user_id: string | null }>('svc_demo_check', { p_code_hash: await sha(code) })).user_id;
-      if (!userId) throw new Fail(500, 'SERVER_ERROR');
+      if (!userId) throw new Fail(500, 'SERVER_ERROR', 'demo account was created by another sign-in but could not be read back', 'demo-race');
     }
   }
   const email = await emailOf(userId);
-  if (!email) throw new Fail(500, 'SERVER_ERROR');
+  if (!email) throw new Fail(500, 'SERVER_ERROR', 'the demo sign-in account is missing in Supabase Auth', 'demo-account');
   for (let attempt = 0; attempt < 3; attempt++) {
     const password = `D${crypto.randomUUID()}x9`;
     const { error } = await svc.auth.admin.updateUserById(userId, { password });
-    if (error) throw new Fail(500, 'SERVER_ERROR');
+    if (error) throw new Fail(500, 'SERVER_ERROR', `could not set the demo session key: ${why(error)}`, 'demo-password');
     const session = await passwordGrant(email, password);   // another demo sign-in at the same moment can win the race: retry
     if (session) { await db('svc_log_auth', { p_user: userId, p_action: 'auth.demo_login', p_details: {} }); return session; }
   }
-  throw new Fail(503, 'SERVER_ERROR');
+  throw new Fail(503, 'SERVER_ERROR', 'Supabase Auth refused the demo sign-in 3 times', 'demo-session');
 }
 
 async function setupStatus() {
@@ -182,7 +185,7 @@ async function changePassword(req: Request, b: Record<string, unknown>) {
   const next = checkPassword(b.new_password, (await db<string | null>('svc_username_of', { p_user_id: uid })) ?? '');
   if (next === current) throw new Fail(400, 'SAME_PASSWORD');
   const { error } = await svc.auth.admin.updateUserById(uid, { password: next });
-  if (error) throw new Fail(500, 'SERVER_ERROR');
+  if (error) throw new Fail(500, 'SERVER_ERROR', `could not save the new password: ${why(error)}`, 'update-password');
   await db('svc_password_changed', { p_user_id: uid });
   return { ok: true };
 }
@@ -240,7 +243,7 @@ async function resetPassword(req: Request, b: Record<string, unknown>) {
   // Authorizes the actor, forces a password change at next login and revokes sessions.
   await db('svc_begin_password_reset', { p_actor: uid, p_shop_id: str(b.shop_id, 40) || null, p_user_id: target });
   const { error } = await svc.auth.admin.updateUserById(target, { password: next });
-  if (error) throw new Fail(500, 'SERVER_ERROR');
+  if (error) throw new Fail(500, 'SERVER_ERROR', `could not save the new password: ${why(error)}`, 'reset-password');
   return { ok: true };
 }
 
@@ -261,8 +264,12 @@ Deno.serve(async (req) => {
       default: return json(400, { error: 'UNKNOWN_ACTION' });
     }
   } catch (e) {
-    if (e instanceof Fail) return json(e.status, { error: e.code });
-    console.error('unhandled', e instanceof Error ? e.name : 'error');
-    return json(500, { error: 'SERVER_ERROR' });
+    if (e instanceof Fail) {
+      if (e.status >= 500) console.error('auth-admin', e.code, e.step, e.detail);
+      return json(e.status, { error: e.code, ...(e.step ? { step: e.step } : {}), ...(e.detail ? { detail: e.detail } : {}) });
+    }
+    const detail = e instanceof Error ? `${e.name}: ${e.message}`.slice(0, 240) : 'unknown error';
+    console.error('auth-admin unhandled', detail);
+    return json(500, { error: 'SERVER_ERROR', step: 'internal', detail });
   }
 });

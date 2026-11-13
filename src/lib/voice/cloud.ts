@@ -1,5 +1,6 @@
 'use client';
 // Client for the speech-to-text backup (Gemini via our edge function).
+import { callFunction } from '../api';
 import { supabase, SUPABASE_KEY, SUPABASE_URL } from '../supabase';
 
 async function call(body: Record<string, unknown>, timeoutMs: number): Promise<Response> {
@@ -28,8 +29,6 @@ async function toBase64(b: Blob): Promise<string> {
 }
 
 export async function transcribe(wav: Blob, lang: string, shopId: string): Promise<string> {
-  const res = await call({ shop_id: shopId, lang, audio_base64: await toBase64(wav) }, 20_000);
-  const out = (await res.json().catch(() => ({}))) as { text?: string; error?: string };
-  if (!res.ok) throw new Error(out.error ?? 'AI_PROVIDER_ERROR');
+  const out = await callFunction<{ text?: string }>('speech-to-text', { shop_id: shopId, lang, audio_base64: await toBase64(wav) }, 20_000);
   return out.text ?? '';
 }

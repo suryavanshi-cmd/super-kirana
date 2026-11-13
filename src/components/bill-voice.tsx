@@ -49,7 +49,7 @@ export function BillVoice({ lines, products, onApply, onClose }: {
           </p>
         </div>
       )}
-      <MicHelp status={speech.status} os={speech.os} onRetry={speech.retry} />
+      <MicHelp status={speech.status} os={speech.os} onRetry={speech.retry} cause={speech.cause} />
       <p className="mb-2 text-xs text-muted">{t('bv.hint')}</p>
       <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (typed.trim()) { run([typed.trim()], 'typed'); setTyped(''); } }}>
         <Input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={t('bv.type')} aria-label={t('bv.type')} maxLength={200} data-testid="bill-cmd" />

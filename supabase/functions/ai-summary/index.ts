@@ -16,6 +16,13 @@ const SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SUPAB
 const ENV_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
 const MODELS = (Deno.env.get('GEMINI_MODEL') ?? 'gemini-flash-latest,gemini-2.5-flash,gemini-flash-lite-latest,gemini-2.5-flash-lite').split(',').map((s) => s.trim()).filter(Boolean);
 const API = 'https://generativelanguage.googleapis.com/v1beta/models';
+/** Gemini's own reason, short and without the key, e.g. "429 RESOURCE_EXHAUSTED: Quota exceeded …". */
+function geminiReason(model: string, status: number, body: string): string {
+  let msg = body;
+  try { const j = JSON.parse(body) as { error?: { status?: string; message?: string } }; if (j.error) msg = `${j.error.status ?? ''}: ${j.error.message ?? ''}`; } catch { /* plain text */ }
+  return `${model} ${status} ${msg}`.replace(/AIza[0-9A-Za-z_-]+/g, '[key]').replace(/\s+/g, ' ').slice(0, 220);
+}
+
 const cors = {
   'Access-Control-Allow-Origin': Deno.env.get('APP_ORIGIN') ?? '*',
   'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info',
@@ -64,7 +71,7 @@ Deno.serve(async (req) => {
 
     const svc = createClient(URL_, SERVICE, { auth: { persistSession: false } });
     const key = await aiKey(svc);
-    if (!key) return json(503, { error: 'NOT_CONFIGURED' });
+    if (!key) return json(503, { error: 'NOT_CONFIGURED', detail: 'GEMINI_API_KEY is not set (Supabase secret or Vault gemini_api_key)' });
     if (b.probe) return json(200, { configured: true });
 
     const { data: allowed } = await svc.rpc('svc_rate_limit', { p_key: `ai:${ctx.user_id}`, p_max: 30, p_window_seconds: 3600 });
@@ -75,7 +82,7 @@ Deno.serve(async (req) => {
 
     if (!b.from || !b.to || !DATE.test(b.from) || !DATE.test(b.to)) return json(400, { error: 'INVALID_RANGE' });
     const { data: ins, error: insErr } = await user.rpc('get_insights', { p_shop_id: b.shop_id, p_from: b.from, p_to: b.to });
-    if (insErr || !ins) return json(400, { error: insErr?.message ?? 'INVALID_RANGE' });
+    if (insErr || !ins) return json(400, { error: /^[A-Z_]+$/.test(insErr?.message ?? '') ? insErr!.message : 'INVALID_RANGE', step: 'get_insights', detail: `${insErr?.code ?? ''} ${insErr?.message ?? ''}`.trim() });
     const d = ins as Insights;
 
     // Customers are replaced by codes before anything leaves our servers.
@@ -109,24 +116,34 @@ Deno.serve(async (req) => {
     ].join('\n');
 
     let text = '', busy = false;
+    const reasons: string[] = [];
     for (const model of MODELS) {
-      const res = await fetch(`${API}/${encodeURIComponent(model)}:generateContent`, {
+      let res: Response;
+      try {
+        res = await fetch(`${API}/${encodeURIComponent(model)}:generateContent`, {
         method: 'POST',
         headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.3, maxOutputTokens: 8192 } }),
         signal: AbortSignal.timeout(30_000),
       });
+      } catch (e) {   // this model timed out or could not be reached: try the next one
+        reasons.push(`${model}: ${e instanceof Error ? e.name : 'fetch failed'}`);
+        continue;
+      }
+
       if (!res.ok) {   // retired / overloaded / over quota: note why and try the next model
-        const why = await res.text().catch(() => '');
-        console.error('gemini', model, res.status, why.slice(0, 300).replace(/AIza[0-9A-Za-z_-]+/g, '[key]'));
+        const why = geminiReason(model, res.status, await res.text().catch(() => ''));
+        console.error('gemini', why);
+        reasons.push(why);
         if (res.status === 429) busy = true;
         continue;
       }
       const out = await res.json() as { candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[] };
       text = (out.candidates?.[0]?.content?.parts ?? []).filter((p) => !p.thought).map((p) => p.text ?? '').join('').trim();
-      if (text) break;   // a thinking model can spend its whole budget thinking: then try the next one
+      if (text) break;
+      reasons.push(`${model}: empty reply`);   // a thinking model can spend its whole budget thinking: then try the next one
     }
-    if (!text) return json(busy ? 429 : 502, { error: busy ? 'AI_BUSY' : 'AI_PROVIDER_ERROR' });
+    if (!text) return json(busy ? 429 : 502, { error: busy ? 'AI_BUSY' : 'AI_PROVIDER_ERROR', step: 'gemini', detail: reasons.join(' | ').slice(0, 450) || 'no model gave an answer' });
 
     // Put the real names back (longest codes first so C12 is not read as C1).
     const back = [...names.entries()].sort((a, c) => c[1].length - a[1].length);
@@ -134,7 +151,8 @@ Deno.serve(async (req) => {
     text = text.replace(/[<>]/g, '').replace(/\*\*/g, '').slice(0, 2000);
     return json(200, { text, source: 'ai' });
   } catch (e) {
-    console.error('ai-summary failed', e instanceof Error ? e.name : 'error');
-    return json(502, { error: 'AI_PROVIDER_ERROR' });
+    const why = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+    console.error('ai-summary failed', why);
+    return json(502, { error: 'AI_PROVIDER_ERROR', step: 'internal', detail: why.replace(/AIza[0-9A-Za-z_-]+/g, '[key]').slice(0, 300) });
   }
 });

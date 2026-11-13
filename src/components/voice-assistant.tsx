@@ -130,7 +130,7 @@ export function VoiceAssistant() {
                 {speechLabel(t, speech, heard ? `“${heard}”` : t('va.say'))}
               </p>
             </div>
-            <MicHelp status={speech.status} os={speech.os} onRetry={speech.retry} />
+            <MicHelp status={speech.status} os={speech.os} onRetry={speech.retry} cause={speech.cause} />
 
             {result?.kind === 'unknown' && heard && <p className="mb-2 font-semibold text-due">{t('va.notUnderstood')}</p>}
             {pickList.length > 0 && result && (result.kind === 'editCustomer' || result.kind === 'openCustomer') && (

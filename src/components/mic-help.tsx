@@ -17,7 +17,7 @@ export function speechLabel(t: (k: Key, v?: Record<string, string | number>) => 
 }
 
 /** Explains, for this phone and browser, why the mic is not working and exactly what to change. */
-export function MicHelp({ status, os, onRetry }: { status: Status; os: 'ios' | 'android' | 'other'; onRetry: () => void }) {
+export function MicHelp({ status, os, onRetry, cause }: { status: Status; os: 'ios' | 'android' | 'other'; onRetry: () => void; cause?: string }) {
   const { t } = useI18n();
   const blocked = blockedBrowser();
   const steps = os === 'ios' ? t('vo.stepsIos') : os === 'android' ? t('vo.stepsAndroid') : t('vo.stepsOther');
@@ -42,9 +42,11 @@ export function MicHelp({ status, os, onRetry }: { status: Status; os: 'ios' | '
   else if (status === 'quota') body = <Notice tone="warn">{t('err.AI_BUSY')}</Notice>;
   else if (status === 'demo') body = <Notice tone="warn">{t('err.DEMO_LIMIT')}</Notice>;
   else if (status === 'error') body = <Notice tone="warn">{t('vo.error')}</Notice>;
+  const showCause = !!cause && ['error', 'quota', 'busy', 'lang', 'denied', 'unsupported', 'siri'].includes(status);
   return (
     <>
       {body}
+      {showCause && <p data-testid="mic-cause" className="-mt-1 mb-2 break-words text-xs text-muted">{t('err.reason')}: {cause}</p>}
       {os === 'ios' && (
         <details className="my-2 rounded-xl border border-line p-2 text-sm">
           <summary className="min-h-10 cursor-pointer font-semibold text-brand-700">{t('vo.helpTitle')}</summary>

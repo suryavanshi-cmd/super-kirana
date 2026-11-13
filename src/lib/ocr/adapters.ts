@@ -3,6 +3,7 @@
 //             Marathi/English. It cannot reliably read handwriting, and the UI says so.
 //   cloud   — OCR.space via the `ocr` edge function (Engine 3 reads handwriting). Used whenever the
 //             OCR_SPACE_API_KEY secret is set; the device reader is the fallback.
+import { AppError, reportError } from '../api';
 import { supabase, SUPABASE_KEY, SUPABASE_URL } from '../supabase';
 import type { OcrAdapter, OcrResult } from './types';
 
@@ -95,7 +96,11 @@ export const cloudAdapter: OcrAdapter = {
     for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
     onProgress?.(0.5);
     const res = await callCloud({ shop_id: shopId, image_base64: btoa(bin), mime: small.type || 'image/jpeg' });
-    if (!res.ok) throw new Error('OCR_PROVIDER_ERROR');
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      reportError(new AppError('OCR_PROVIDER_ERROR', 'server', body.slice(0, 200), 'ocr', res.status));
+      throw new Error('OCR_PROVIDER_ERROR');
+    }
     const out = (await res.json()) as { text: string; confidence: number | null };
     onProgress?.(1);
     return { provider: 'ocr-space', text: out.text, confidence: out.confidence,

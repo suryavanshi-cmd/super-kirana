@@ -15,6 +15,13 @@ const ENV_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
 // Flash-Lite first: fastest and cheapest, good at short commands. Flash if it is unavailable.
 const MODELS = (Deno.env.get('GEMINI_SPEECH_MODEL') ?? 'gemini-2.5-flash-lite,gemini-flash-lite-latest,gemini-2.5-flash,gemini-flash-latest').split(',').map((s) => s.trim()).filter(Boolean);
 const API = 'https://generativelanguage.googleapis.com/v1beta/models';
+/** Gemini's own reason, short and without the key, e.g. "429 RESOURCE_EXHAUSTED: Quota exceeded …". */
+function geminiReason(model: string, status: number, body: string): string {
+  let msg = body;
+  try { const j = JSON.parse(body) as { error?: { status?: string; message?: string } }; if (j.error) msg = `${j.error.status ?? ''}: ${j.error.message ?? ''}`; } catch { /* plain text */ }
+  return `${model} ${status} ${msg}`.replace(/AIza[0-9A-Za-z_-]+/g, '[key]').replace(/\s+/g, ' ').slice(0, 220);
+}
+
 const MAX_B64 = 1_400_000;              // ≈ 1 MB of audio ≈ 30 s at 16 kHz mono 16-bit
 const LANG: Record<string, string> = { 'mr-IN': 'Marathi', 'hi-IN': 'Hindi', 'en-IN': 'Indian English' };
 const cors = {
@@ -56,7 +63,7 @@ Deno.serve(async (req) => {
     if (!(ctx.shops as { id: string }[]).some((s) => s.id === b.shop_id)) return json(403, { error: 'FORBIDDEN' });
     const svc = createClient(URL_, SERVICE, { auth: { persistSession: false } });
     const key = await aiKey(svc);
-    if (!key) return json(503, { error: 'NOT_CONFIGURED' });
+    if (!key) return json(503, { error: 'NOT_CONFIGURED', detail: 'GEMINI_API_KEY is not set (Supabase secret or Vault gemini_api_key)' });
     if (b.probe) return json(200, { configured: true });
 
     const { data: allowed } = await svc.rpc('svc_rate_limit', { p_key: `stt:${ctx.user_id}`, p_max: 600, p_window_seconds: 3600 });
@@ -78,8 +85,11 @@ Deno.serve(async (req) => {
     ].filter(Boolean).join('\n');
 
     let busy = false;
+    const reasons: string[] = [];
     for (const model of MODELS) {
-      const res = await fetch(`${API}/${encodeURIComponent(model)}:generateContent`, {
+      let res: Response;
+      try {
+        res = await fetch(`${API}/${encodeURIComponent(model)}:generateContent`, {
         method: 'POST',
         headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -92,22 +102,29 @@ Deno.serve(async (req) => {
         }),
         signal: AbortSignal.timeout(15_000),
       });
+      } catch (e) {   // this model timed out or could not be reached: try the next one
+        reasons.push(`${model}: ${e instanceof Error ? e.name : 'fetch failed'}`);
+        continue;
+      }
+
       if (!res.ok) {   // model unavailable / busy: note why (no audio, no key) and try the next one
-        const why = await res.text().catch(() => '');
-        console.error('gemini', model, res.status, why.slice(0, 300).replace(/AIza[0-9A-Za-z_-]+/g, '[key]'));
+        const why = geminiReason(model, res.status, await res.text().catch(() => ''));
+        console.error('gemini', why);
+        reasons.push(why);
         if (res.status === 429) busy = true;
         continue;
       }
       const raw = await res.json() as { candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[] };
       const out = (raw.candidates?.[0]?.content?.parts ?? []).filter((p) => !p.thought).map((p) => p.text ?? '').join('');
       let text = '';
-      try { text = String((JSON.parse(out) as { text?: string }).text ?? ''); } catch { continue; }
+      try { text = String((JSON.parse(out) as { text?: string }).text ?? ''); } catch { reasons.push(`${model}: reply was not valid JSON`); continue; }
       text = text.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 300);
       return json(200, { text, model, ms: Date.now() - started });
     }
-    return json(busy ? 429 : 502, { error: busy ? 'AI_BUSY' : 'AI_PROVIDER_ERROR' });
+    return json(busy ? 429 : 502, { error: busy ? 'AI_BUSY' : 'AI_PROVIDER_ERROR', step: 'gemini', detail: reasons.join(' | ').slice(0, 450) || 'no model gave an answer' });
   } catch (e) {
-    console.error('speech-to-text failed', e instanceof Error ? e.name : 'error');
-    return json(502, { error: 'AI_PROVIDER_ERROR' });
+    const why = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+    console.error('speech-to-text failed', why);
+    return json(502, { error: 'AI_PROVIDER_ERROR', step: 'internal', detail: why.replace(/AIza[0-9A-Za-z_-]+/g, '[key]').slice(0, 300) });
   }
 });

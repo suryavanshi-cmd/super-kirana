@@ -312,7 +312,11 @@ export const mr = {
   'err.IDEMPOTENCY_KEY_REUSED': 'ही नोंद आधी वेगळ्या माहितीसह पाठवली होती. पान पुन्हा उघडा.', 'err.MUTATION_IN_PROGRESS': 'ही नोंद सुरू आहे. थोडे थांबा.',
   'err.INVALID_RANGE': 'तारखा बरोबर निवडा (जास्तीत जास्त १ वर्ष).', 'err.NEGATIVE_BALANCE': 'यामुळे ग्राहकाची बाकी शून्याखाली जाईल.',
   'err.IMMUTABLE_RECORD': 'नोंदलेली नोंद बदलता येत नाही. रद्द करा आणि नवीन करा.', 'err.NOT_CONFIGURED': 'क्लाउड वाचन सुरू केलेले नाही.',
-  'err.SERVER_ERROR': 'सर्व्हरवर अडचण आली. थोड्या वेळाने प्रयत्न करा.', 'err.PROFILE_MISSING': 'खाते अपूर्ण आहे. प्रशासकाशी बोला.',
+  'err.SERVER_ERROR': 'सर्व्हरने हे काम पूर्ण केले नाही. कारण खाली दिले आहे.',
+  'err.APP_OUTDATED': 'ॲप आणि सर्व्हर जुळत नाहीत. पान रिफ्रेश करा.', 'err.TIMEOUT': 'सर्व्हरकडून वेळेत उत्तर आले नाही. पुन्हा प्रयत्न करा.',
+  'err.reason': 'कारण', 'err.ref': 'संदर्भ', 'err.copy': 'कॉपी करा', 'err.copied': 'कॉपी झाले',
+  'err.logTitle': 'अडचणींची नोंद', 'err.logHint': 'या फोनवर आलेल्या अडचणी आणि त्यांची कारणे. सर्व्हरवरही आपोआप नोंद होते.',
+  'err.logEmpty': 'कोणतीही अडचण नोंदलेली नाही.', 'err.logClear': 'नोंद पुसा', 'err.logCopy': 'सर्व कॉपी करा', 'err.PROFILE_MISSING': 'खाते अपूर्ण आहे. प्रशासकाशी बोला.',
   'err.notFound': 'हे पान सापडले नाही', 'err.goHome': 'मुख्यपृष्ठावर जा',
 } as const;
 
@@ -602,7 +606,11 @@ export const en: Record<Key, string> = {
   'err.IDEMPOTENCY_KEY_REUSED': 'This entry was sent before with different details. Reopen the page.', 'err.MUTATION_IN_PROGRESS': 'This entry is in progress. Please wait.',
   'err.INVALID_RANGE': 'Choose valid dates (at most 1 year).', 'err.NEGATIVE_BALANCE': 'This would take the customer balance below zero.',
   'err.IMMUTABLE_RECORD': 'A posted entry cannot be changed. Reverse it and make a new one.', 'err.NOT_CONFIGURED': 'Cloud reading is not switched on.',
-  'err.SERVER_ERROR': 'There was a problem on the server. Please try again shortly.', 'err.PROFILE_MISSING': 'The account is incomplete. Contact the administrator.',
+  'err.SERVER_ERROR': 'The server could not finish this. The reason is shown below.',
+  'err.APP_OUTDATED': 'The app and the server do not match. Refresh the page.', 'err.TIMEOUT': 'The server did not answer in time. Try again.',
+  'err.reason': 'Reason', 'err.ref': 'Ref', 'err.copy': 'Copy', 'err.copied': 'Copied',
+  'err.logTitle': 'Problem log', 'err.logHint': 'Problems seen on this phone and their causes. They are also logged on the server automatically.',
+  'err.logEmpty': 'No problems recorded.', 'err.logClear': 'Clear log', 'err.logCopy': 'Copy all', 'err.PROFILE_MISSING': 'The account is incomplete. Contact the administrator.',
   'err.notFound': 'Page not found', 'err.goHome': 'Go to Home',
 };
 

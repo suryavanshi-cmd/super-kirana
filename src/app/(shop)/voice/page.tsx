@@ -89,7 +89,7 @@ function VoiceScreen() {
           {interim && <p className="text-center text-muted">{interim}</p>}
         </div>
       )}
-      <MicHelp status={status} os={speech.os} onRetry={speech.retry} />
+      <MicHelp status={status} os={speech.os} onRetry={speech.retry} cause={speech.cause} />
       {!text && <p className="mb-3 text-sm text-muted">{t('vo.example')}</p>}
 
       <label className="mb-1 block text-sm font-semibold" htmlFor="vo-text">{t('vo.heard')}</label>

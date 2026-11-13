@@ -4,6 +4,7 @@ import type { Line } from './draft';
 import { lineId } from './draft';
 import { paiseToInputText, type Unit } from './money';
 import { downscale } from './ocr/adapters';
+import { callFunction } from './api';
 import { supabase, SUPABASE_KEY, SUPABASE_URL } from './supabase';
 
 export interface VisionLine { product_id: string | null; name: string; heard: string; qty: string; unit: Unit; price_unit: Unit; price_paise: number | null; paper_price_paise: number | null; flags: string[] }
@@ -35,10 +36,8 @@ export async function prepare(image: Blob): Promise<{ base64: string; mime: stri
 }
 
 export async function readBillPhoto(prepared: { base64: string; mime: string }, shopId: string): Promise<VisionResult> {
-  const res = await call({ shop_id: shopId, image_base64: prepared.base64, mime: prepared.mime }, 40_000);
-  const out = (await res.json().catch(() => ({}))) as VisionResult & { error?: string };
-  if (!res.ok) throw new Error(out.error ?? 'AI_PROVIDER_ERROR');
-  return out;
+  // Throws an AppError carrying the real reason (e.g. "bill-vision · HTTP 429 · gemini-2.5-flash: quota exceeded").
+  return callFunction<VisionResult>('bill-vision', { shop_id: shopId, image_base64: prepared.base64, mime: prepared.mime }, 40_000);
 }
 
 export function toDraftLines(r: VisionResult): Line[] {

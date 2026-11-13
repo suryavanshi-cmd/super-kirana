@@ -5,7 +5,7 @@ import { BillVoice } from '@/components/bill-voice';
 import { BILL_EVENT, type BillEventDetail } from '@/components/voice-assistant';
 import { CustomerForm } from '@/components/customer-form';
 import { failedText, UnknownOutcome } from '@/components/outcome';
-import { Button, Card, Dialog, DueTag, EmptyState, ErrorBox, Field, Icon, Input, LinkButton, Money, MoneyInput, Notice, PageHeader, Row, SearchBox, Segmented, Select, Skeleton, useToast } from '@/components/ui';
+import { Button, Card, Dialog, DueTag, EmptyState, ErrorBox, Field, Icon, Input, LinkButton, Money, MoneyInput, Notice, PageHeader, Row, SearchBox, Segmented, Select, Skeleton, useToast, errorLine } from '@/components/ui';
 import { newKey, rpc, type CustomerRow, type Method, type Product } from '@/lib/api';
 import { matches, useOnline } from '@/lib/data';
 import { calcBill, calcLine, clearDraft, emptyDraft, invoiceItems, lineFromProduct, lineId, loadDraft, saveDraft, type Change, type Draft, type Line } from '@/lib/draft';
@@ -152,7 +152,7 @@ function BillScreen() {
       update((d) => ({ ...d, changes: log(d, l.priceVia === 'voice' ? 'voice' : 'typed', t('ch.shopPrice', { n: p.name, a: rupees(p.default_price_paise), b: rupees(pricePaise) })) }));
       toast(t('bp.saved'));
       await products.reload();
-    } catch { toast(t('err.SERVER_ERROR')); }
+    } catch (e) { toast(errorLine(t, e)); }
     finally { setSavingPrice(null); }
   }
   function addProduct(p: Product) {

@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, ErrorBox, Icon, Notice, PageHeader, Segmented, Skeleton, useToast } from '@/components/ui';
-import { errorKey, formatDateTime, todayIn, useI18n } from '@/lib/i18n';
+import { formatDateTime, todayIn, useI18n } from '@/lib/i18n';
 import { useShop } from '@/lib/session';
+import { AppError } from '@/lib/api';
 import { aiSummary, fmtQty, rupeesShort, useInsights, type Insights } from '@/lib/store';
 
 type Which = 'today' | 'yesterday' | 'week';
@@ -34,7 +35,7 @@ export default function SummaryPage() {
   const from = which === 'today' ? today : which === 'yesterday' ? todayIn(shop.timezone, -1) : todayIn(shop.timezone, -6);
   const to = which === 'yesterday' ? from : today;
   const q = useInsights(from, to);
-  const [ai, setAi] = useState<{ text?: string; error?: string; busy?: boolean }>({});
+  const [ai, setAi] = useState<{ text?: string; error?: AppError; busy?: boolean }>({});
   const [aiOn, setAiOn] = useState<boolean | null>(null);
 
   useEffect(() => { setAi({}); }, [from, to]);
@@ -53,7 +54,7 @@ export default function SummaryPage() {
   async function runAi() {
     setAi({ busy: true });
     const r = await aiSummary({ shop_id: shop.id, from, to, language: locale === 'en-IN' ? 'en' : 'mr' });
-    setAi('error' in r ? { error: r.error } : { text: r.text });
+    setAi('error' in r ? { error: r.err ?? new AppError(r.error, 'server') } : { text: r.text });
   }
   async function copy() {
     try { await navigator.clipboard.writeText(shareText); toast(t('sum.copied')); } catch { /* clipboard blocked */ }
@@ -73,7 +74,7 @@ export default function SummaryPage() {
               {ai.busy ? t('sum.aiWorking') : t('sum.aiButton')}
             </Button>
           )}
-          {ai.error && <ErrorBox error={t(errorKey(ai.error))} />}
+          {ai.error && <ErrorBox error={ai.error} />}
           {ai.text && (
             <Card className="mt-4 border-brand-200 bg-brand-50">
               <h2 className="mb-2 font-bold">{t('sum.ai')}</h2>
