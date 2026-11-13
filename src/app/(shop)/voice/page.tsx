@@ -2,6 +2,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { CustomerForm } from '@/components/customer-form';
+import { MicHelp } from '@/components/mic-help';
 import { Button, Card, DueTag, ErrorBox, Icon, Money, Notice, PageHeader, Row, Segmented, Skeleton } from '@/components/ui';
 import type { CustomerRow } from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
@@ -15,7 +16,7 @@ import { parseVoice, type Intent, type VoiceDraft } from '@/lib/voice/parse';
  * उधारी or पैसे जमा screen. Nothing is saved here: the normal screen shows the numbers for a final check.
  */
 type Lang = 'mr-IN' | 'hi-IN' | 'en-IN';
-type Status = 'checking' | 'idle' | 'asking' | 'listening' | 'unsupported' | 'denied' | 'siri' | 'insecure' | 'tapAgain' | 'nospeech' | 'error';
+type Status = 'checking' | 'idle' | 'asking' | 'listening' | 'unsupported' | 'denied' | 'siri' | 'insecure' | 'tapAgain' | 'nospeech' | 'busy' | 'lang' | 'error';
 
 interface Recognition {
   lang: string; interimResults: boolean; continuous: boolean; maxAlternatives: number;
@@ -80,7 +81,8 @@ function VoiceScreen() {
     const Ctor = recognitionCtor();
     if (!Ctor) { setStatus('unsupported'); return; }
     rec.current?.abort();
-    if (!micOk.current) {
+    // iPhone: start straight from the tap; Safari shows its own microphone prompt.
+    if (!micOk.current && os !== 'ios') {
       // First use: this tap shows the phone's own "allow microphone" prompt.
       setStatus('asking');
       const r = await requestMic();
@@ -106,7 +108,8 @@ function VoiceScreen() {
     r.onerror = (e) => setStatus(
       e.error === 'not-allowed' ? (micOk.current && os === 'ios' ? 'tapAgain' : 'denied')
         : e.error === 'service-not-allowed' ? (os === 'ios' ? 'siri' : 'denied')
-          : e.error === 'no-speech' ? 'nospeech' : e.error === 'aborted' ? 'idle' : 'error');
+          : e.error === 'no-speech' ? 'nospeech' : e.error === 'aborted' ? 'idle'
+            : e.error === 'audio-capture' ? 'busy' : e.error === 'language-not-supported' ? 'lang' : 'error');
     r.onend = () => { setInterim(''); setStatus((s) => (s === 'listening' ? 'idle' : s)); };
     rec.current = r;
     setStatus('listening');
@@ -146,20 +149,7 @@ function VoiceScreen() {
           {interim && <p className="text-center text-muted">{interim}</p>}
         </div>
       )}
-      {status === 'unsupported' && <Notice tone="warn" icon="mic">{os === 'ios' && isStandalone() ? t('vo.iosPwa') : t('vo.unsupported')}</Notice>}
-      {status === 'denied' && (
-        <div data-testid="mic-help">
-          <Notice tone="warn" icon="mic">
-            <span className="block font-semibold">{t('vo.denied')}</span>
-            <span className="mt-1 block whitespace-pre-line">{os === 'ios' ? t('vo.stepsIos') : os === 'android' ? t('vo.stepsAndroid') : t('vo.stepsOther')}</span>
-          </Notice>
-          <Button full variant="secondary" onClick={() => { micOk.current = false; void listen(); }}>{t('vo.tryAgain')}</Button>
-        </div>
-      )}
-      {status === 'siri' && <Notice tone="warn" icon="mic"><span className="whitespace-pre-line">{t('vo.siri')}</span></Notice>}
-      {status === 'insecure' && <Notice tone="warn" icon="mic">{t('vo.insecure')}</Notice>}
-      {status === 'nospeech' && <Notice>{t('vo.noSpeech')}</Notice>}
-      {status === 'error' && <Notice tone="warn">{t('vo.error')}</Notice>}
+      <MicHelp status={status} os={os} onRetry={() => { micOk.current = false; void listen(); }} />
       {!text && <p className="mb-3 text-sm text-muted">{t('vo.example')}</p>}
 
       <label className="mb-1 block text-sm font-semibold" htmlFor="vo-text">{t('vo.heard')}</label>

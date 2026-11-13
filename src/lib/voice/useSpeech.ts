@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { micState, platform, requestMic, type Platform } from '../mic';
 
-export type SpeechStatus = 'checking' | 'idle' | 'asking' | 'listening' | 'unsupported' | 'denied' | 'siri' | 'insecure' | 'tapAgain' | 'nospeech' | 'error';
+export type SpeechStatus = 'checking' | 'idle' | 'asking' | 'listening' | 'unsupported' | 'denied' | 'siri' | 'insecure' | 'tapAgain' | 'nospeech' | 'busy' | 'lang' | 'error';
 export type SpeechLang = 'mr-IN' | 'hi-IN' | 'en-IN';
 
 interface Rec {
@@ -47,7 +47,9 @@ export function useSpeech(lang: SpeechLang, onFinal: (alternatives: string[]) =>
     if (!C) { setStatus('unsupported'); return; }
     rec.current?.abort();
     const ios = platform() === 'ios';
-    if (!micOk.current) {
+    // iPhone: Safari asks for the microphone itself; calling start() right inside the tap is what
+    // iOS needs (an extra permission request first can make it refuse to start).
+    if (!micOk.current && !ios) {
       setStatus('asking');
       const r = await requestMic();
       if (r === 'denied') { setStatus('denied'); return; }
@@ -68,7 +70,8 @@ export function useSpeech(lang: SpeechLang, onFinal: (alternatives: string[]) =>
     r.onerror = (e) => setStatus(
       e.error === 'not-allowed' ? (micOk.current && ios ? 'tapAgain' : 'denied')
         : e.error === 'service-not-allowed' ? (ios ? 'siri' : 'denied')
-          : e.error === 'no-speech' ? 'nospeech' : e.error === 'aborted' ? 'idle' : 'error');
+          : e.error === 'no-speech' ? 'nospeech' : e.error === 'aborted' ? 'idle'
+            : e.error === 'audio-capture' ? 'busy' : e.error === 'language-not-supported' ? 'lang' : 'error');
     r.onend = () => { setInterim(''); setStatus((s) => (s === 'listening' ? 'idle' : s)); };
     rec.current = r;
     setStatus('listening');

@@ -52,3 +52,15 @@ export async function requestMic(): Promise<'granted' | 'denied' | 'unavailable'
     return 'denied';
   }
 }
+
+/**
+ * Browsers that cannot do speech typing on iPhone: links opened inside WhatsApp, Instagram, Facebook
+ * etc. (in-app browsers), and Chrome / Firefox / Edge on iPhone. Safari works.
+ */
+export function blockedBrowser(): 'inapp' | 'iosOther' | null {
+  if (typeof navigator === 'undefined') return null;
+  const ua = navigator.userAgent;
+  if (/FBAN|FBAV|Instagram|WhatsApp|Line\/|Snapchat|; wv\)|GSA\//i.test(ua)) return 'inapp';
+  if (platform() === 'ios' && /CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua)) return 'iosOther';
+  return null;
+}
