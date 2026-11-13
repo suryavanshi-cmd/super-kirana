@@ -15,8 +15,8 @@ const URL_ = Deno.env.get('SUPABASE_URL')!;
 const ANON = Deno.env.get('SUPABASE_ANON_KEY') ?? Deno.env.get('SUPABASE_PUBLISHABLE_KEY') ?? '';
 const SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SECRET_KEY') ?? '';
 const ENV_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
-// Fast first; the second model is tried only if the first is unavailable or overloaded.
-const MODELS = (Deno.env.get('GEMINI_VISION_MODEL') ?? 'gemini-2.5-flash,gemini-2.5-flash-lite,gemini-flash-latest').split(',').map((s) => s.trim()).filter(Boolean);
+// Fast first; the next models are tried only if one is unavailable or overloaded.
+const MODELS = (Deno.env.get('GEMINI_VISION_MODEL') ?? 'gemini-2.5-flash,gemini-flash-latest,gemini-2.5-flash-lite,gemini-flash-lite-latest').split(',').map((s) => s.trim()).filter(Boolean);
 const API = 'https://generativelanguage.googleapis.com/v1beta/models';
 const UNITS = ['kg', 'g', 'litre', 'ml', 'packet', 'piece', 'dozen'] as const;
 type Unit = (typeof UNITS)[number];
@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
       `SHOP ITEMS (number|name|unit):\n${list || '(none)'}`,
     ].join('\n');
 
-    let out: AiOut | null = null, modelUsed = '';
+    let out: AiOut | null = null, modelUsed = '', busy = false;
     for (const model of MODELS) {
       const body: Record<string, unknown> = {
         contents: [{ role: 'user', parts: [{ inline_data: { mime_type: mime, data: image } }, { text: prompt }] }],
@@ -123,14 +123,17 @@ Deno.serve(async (req) => {
         method: 'POST', headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' },
         body: JSON.stringify(body), signal: AbortSignal.timeout(25_000),
       });
-      if (res.status === 404 || res.status === 503 || res.status === 500 || res.status === 400) { await res.body?.cancel(); continue; }
-      if (res.status === 429) { await res.body?.cancel(); continue; }
-      if (!res.ok) { await res.body?.cancel(); continue; }
+      if (!res.ok) {   // note why (no image, no key) and try the next model
+        const why = await res.text().catch(() => '');
+        console.error('gemini', model, res.status, why.slice(0, 300).replace(/AIza[0-9A-Za-z_-]+/g, '[key]'));
+        if (res.status === 429) busy = true;
+        continue;
+      }
       const raw = await res.json() as { candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[] };
       const text = (raw.candidates?.[0]?.content?.parts ?? []).filter((p) => !p.thought).map((p) => p.text ?? '').join('');
       try { out = JSON.parse(text) as AiOut; modelUsed = model; break; } catch { continue; }
     }
-    if (!out) return json(502, { error: 'AI_PROVIDER_ERROR' });
+    if (!out) return json(busy ? 429 : 502, { error: busy ? 'AI_BUSY' : 'AI_PROVIDER_ERROR' });
 
     const lines = (out.items ?? []).slice(0, 150).map((it) => {
       const flags: string[] = [];
@@ -165,7 +168,8 @@ Deno.serve(async (req) => {
     }).filter((l) => l.name !== '?');
 
     return json(200, { lines, total_paise: paise(out.total ?? null), model: modelUsed, ms: Date.now() - started });
-  } catch {
+  } catch (e) {
+    console.error('bill-vision failed', e instanceof Error ? e.name : 'error');
     return json(502, { error: 'AI_PROVIDER_ERROR' });
   }
 });

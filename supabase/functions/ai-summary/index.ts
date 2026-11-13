@@ -14,7 +14,7 @@ const URL_ = Deno.env.get('SUPABASE_URL')!;
 const ANON = Deno.env.get('SUPABASE_ANON_KEY') ?? Deno.env.get('SUPABASE_PUBLISHABLE_KEY') ?? '';
 const SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SECRET_KEY') ?? '';
 const ENV_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
-const MODELS = (Deno.env.get('GEMINI_MODEL') ?? 'gemini-flash-latest,gemini-2.5-flash,gemini-2.5-flash-lite').split(',').map((s) => s.trim()).filter(Boolean);
+const MODELS = (Deno.env.get('GEMINI_MODEL') ?? 'gemini-flash-latest,gemini-2.5-flash,gemini-flash-lite-latest,gemini-2.5-flash-lite').split(',').map((s) => s.trim()).filter(Boolean);
 const API = 'https://generativelanguage.googleapis.com/v1beta/models';
 const cors = {
   'Access-Control-Allow-Origin': Deno.env.get('APP_ORIGIN') ?? '*',
@@ -108,29 +108,33 @@ Deno.serve(async (req) => {
       `Facts (JSON): ${JSON.stringify(facts)}`,
     ].join('\n');
 
-    let text = '';
+    let text = '', busy = false;
     for (const model of MODELS) {
       const res = await fetch(`${API}/${encodeURIComponent(model)}:generateContent`, {
         method: 'POST',
         headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.3, maxOutputTokens: 2048 } }),
+        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.3, maxOutputTokens: 8192 } }),
         signal: AbortSignal.timeout(30_000),
       });
-      if (res.status === 404) { await res.body?.cancel(); continue; }       // model name retired: try the next one
-      if (res.status === 429) { await res.body?.cancel(); return json(429, { error: 'AI_BUSY' }); }
-      if (!res.ok) { await res.body?.cancel(); return json(502, { error: 'AI_PROVIDER_ERROR' }); }
+      if (!res.ok) {   // retired / overloaded / over quota: note why and try the next model
+        const why = await res.text().catch(() => '');
+        console.error('gemini', model, res.status, why.slice(0, 300).replace(/AIza[0-9A-Za-z_-]+/g, '[key]'));
+        if (res.status === 429) busy = true;
+        continue;
+      }
       const out = await res.json() as { candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[] };
       text = (out.candidates?.[0]?.content?.parts ?? []).filter((p) => !p.thought).map((p) => p.text ?? '').join('').trim();
-      break;
+      if (text) break;   // a thinking model can spend its whole budget thinking: then try the next one
     }
-    if (!text) return json(502, { error: 'AI_PROVIDER_ERROR' });
+    if (!text) return json(busy ? 429 : 502, { error: busy ? 'AI_BUSY' : 'AI_PROVIDER_ERROR' });
 
     // Put the real names back (longest codes first so C12 is not read as C1).
     const back = [...names.entries()].sort((a, c) => c[1].length - a[1].length);
     for (const [name, c] of back) text = text.replace(new RegExp(`\\b${c}\\b`, 'g'), name);
     text = text.replace(/[<>]/g, '').replace(/\*\*/g, '').slice(0, 2000);
     return json(200, { text, source: 'ai' });
-  } catch {
+  } catch (e) {
+    console.error('ai-summary failed', e instanceof Error ? e.name : 'error');
     return json(502, { error: 'AI_PROVIDER_ERROR' });
   }
 });

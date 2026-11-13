@@ -39,6 +39,8 @@ export function MicHelp({ status, os, onRetry }: { status: Status; os: 'ios' | '
   else if (status === 'nospeech') body = <Notice>{t('vo.noSpeech')}</Notice>;
   else if (status === 'busy') body = <Notice tone="warn" icon="mic">{t('vo.busy')}</Notice>;
   else if (status === 'lang') body = <Notice tone="warn" icon="mic">{t('vo.lang2')}</Notice>;
+  else if (status === 'quota') body = <Notice tone="warn">{t('err.AI_BUSY')}</Notice>;
+  else if (status === 'demo') body = <Notice tone="warn">{t('err.DEMO_LIMIT')}</Notice>;
   else if (status === 'error') body = <Notice tone="warn">{t('vo.error')}</Notice>;
   return (
     <>

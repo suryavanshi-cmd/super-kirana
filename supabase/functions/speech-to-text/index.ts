@@ -13,7 +13,7 @@ const ANON = Deno.env.get('SUPABASE_ANON_KEY') ?? Deno.env.get('SUPABASE_PUBLISH
 const SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SECRET_KEY') ?? '';
 const ENV_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
 // Flash-Lite first: fastest and cheapest, good at short commands. Flash if it is unavailable.
-const MODELS = (Deno.env.get('GEMINI_SPEECH_MODEL') ?? 'gemini-2.5-flash-lite,gemini-2.5-flash').split(',').map((s) => s.trim()).filter(Boolean);
+const MODELS = (Deno.env.get('GEMINI_SPEECH_MODEL') ?? 'gemini-2.5-flash-lite,gemini-flash-lite-latest,gemini-2.5-flash,gemini-flash-latest').split(',').map((s) => s.trim()).filter(Boolean);
 const API = 'https://generativelanguage.googleapis.com/v1beta/models';
 const MAX_B64 = 1_400_000;              // ≈ 1 MB of audio ≈ 30 s at 16 kHz mono 16-bit
 const LANG: Record<string, string> = { 'mr-IN': 'Marathi', 'hi-IN': 'Hindi', 'en-IN': 'Indian English' };
@@ -77,6 +77,7 @@ Deno.serve(async (req) => {
       hints ? `Item names used in this shop (for spelling only): ${hints}` : '',
     ].filter(Boolean).join('\n');
 
+    let busy = false;
     for (const model of MODELS) {
       const res = await fetch(`${API}/${encodeURIComponent(model)}:generateContent`, {
         method: 'POST',
@@ -91,7 +92,12 @@ Deno.serve(async (req) => {
         }),
         signal: AbortSignal.timeout(15_000),
       });
-      if (!res.ok) { await res.body?.cancel(); continue; }   // model unavailable / busy: try the next one
+      if (!res.ok) {   // model unavailable / busy: note why (no audio, no key) and try the next one
+        const why = await res.text().catch(() => '');
+        console.error('gemini', model, res.status, why.slice(0, 300).replace(/AIza[0-9A-Za-z_-]+/g, '[key]'));
+        if (res.status === 429) busy = true;
+        continue;
+      }
       const raw = await res.json() as { candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[] };
       const out = (raw.candidates?.[0]?.content?.parts ?? []).filter((p) => !p.thought).map((p) => p.text ?? '').join('');
       let text = '';
@@ -99,8 +105,9 @@ Deno.serve(async (req) => {
       text = text.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 300);
       return json(200, { text, model, ms: Date.now() - started });
     }
-    return json(502, { error: 'AI_PROVIDER_ERROR' });
-  } catch {
+    return json(busy ? 429 : 502, { error: busy ? 'AI_BUSY' : 'AI_PROVIDER_ERROR' });
+  } catch (e) {
+    console.error('speech-to-text failed', e instanceof Error ? e.name : 'error');
     return json(502, { error: 'AI_PROVIDER_ERROR' });
   }
 });

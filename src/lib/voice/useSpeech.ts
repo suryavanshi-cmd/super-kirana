@@ -16,7 +16,7 @@ import { cloudSpeechAvailable, transcribe } from './cloud';
 import { canRecord, recordCommand, type Recording } from './recorder';
 
 export type SpeechStatus = 'checking' | 'idle' | 'asking' | 'listening' | 'thinking' | 'unsupported' | 'denied' | 'siri' | 'insecure'
-  | 'tapAgain' | 'nospeech' | 'busy' | 'lang' | 'error';
+  | 'tapAgain' | 'nospeech' | 'busy' | 'lang' | 'quota' | 'demo' | 'error';
 export type SpeechLang = 'mr-IN' | 'hi-IN' | 'en-IN';
 export type SpeechMode = 'native' | 'cloud';
 
@@ -92,7 +92,8 @@ export function useSpeech(lang: SpeechLang, onFinal: (alternatives: string[]) =>
         setStatus('idle');
         final.current([text]);
       } catch (e) {
-        setStatus(e instanceof Error && e.message === 'TOO_MANY_ATTEMPTS' ? 'busy' : 'error');
+        const code = e instanceof Error ? e.message : '';
+        setStatus(code === 'DEMO_LIMIT' ? 'demo' : code === 'AI_BUSY' || code === 'TOO_MANY_ATTEMPTS' ? 'quota' : 'error');
       }
     });
   }, [lang, shopId]);
