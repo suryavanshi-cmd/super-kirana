@@ -10,7 +10,7 @@ test('capture screens', async ({ page }) => {
   await page.getByRole('button', { name: 'लॉगिन करा' }).click();
   await expect(page.getByTestId('pending-list')).toBeVisible();
   await page.screenshot({ path: '.e2e/shots/a-home.png', fullPage: true });
-  await page.getByRole('link', { name: /उधारी नोंदवा/ }).click();
+  await page.goto('/udhari');
   await page.screenshot({ path: '.e2e/shots/b-udhari-pick.png' });
   await page.getByRole('button', { name: /सुरेश पाटील/ }).click();
   await page.getByLabel('बिलाची रक्कम').fill('120');

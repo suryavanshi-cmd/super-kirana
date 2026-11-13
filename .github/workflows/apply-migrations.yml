@@ -1,0 +1,41 @@
+# Applies NEW database migration files (added in this push) to the live Supabase project, in name
+# order, through the Supabase Management API. Each file runs in one transaction; the first failure
+# stops the run. The result is posted as a commit status ("db-migrations") so it is visible on the
+# commit. Uses the SUPABASE_ACCESS_TOKEN repository secret; prints no secrets.
+name: Apply database migrations
+
+on:
+  push:
+    branches: [main]
+    paths: ['supabase/migrations/**']
+
+concurrency: { group: supabase-db, cancel-in-progress: false }
+permissions: { contents: read, statuses: write }
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+      PROJECT_REF: fzodhlpppcdiqonevmgy
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Apply new migration files
+        run: |
+          set -euo pipefail
+          status() { gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state="$1" -f context=db-migrations -f description="${2:0:139}" >/dev/null; }
+          files=$(git diff --name-only --diff-filter=A "${{ github.event.before }}" "$GITHUB_SHA" -- 'supabase/migrations/*.sql' | sort || true)
+          if [ -z "$files" ]; then status success "no new migration files"; exit 0; fi
+          for f in $files; do
+            echo "applying $f"
+            body=$(jq -n --rawfile q "$f" '{query: ("begin;\n" + $q + "\ncommit;")}')
+            code=$(curl -s -o out.json -w '%{http_code}' -X POST "https://api.supabase.com/v1/projects/$PROJECT_REF/database/query" \
+              -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H 'Content-Type: application/json' --data "$body")
+            if [ "$code" -ge 300 ]; then
+              msg=$(jq -r '.message // .error // tostring' out.json 2>/dev/null | tr '\n' ' ')
+              echo "::error::$f failed ($code): $msg"; status failure "$(basename "$f") failed: $msg"; exit 1
+            fi
+          done
+          status success "applied: $(echo $files | xargs -n1 basename | tr '\n' ' ')"

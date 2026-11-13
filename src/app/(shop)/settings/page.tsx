@@ -1,6 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Appearance } from '@/components/appearance';
 import { Button, Card, Dialog, Icon, LanguageSwitch, LinkButton, Notice, PageHeader, Row, Section } from '@/components/ui';
 import { rpc } from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
@@ -23,6 +24,7 @@ export default function SettingsPage() {
     <div>
       <PageHeader title={t('set.title')} back="/home" />
       <Section title={t('c.language')}><LanguageSwitch /></Section>
+      <Section title={t('set.appearance')}><Appearance /></Section>
       <Section title={t('set.account')}>
         <Card>
           <Row label={t('login.username')}>{ctx?.username}</Row>

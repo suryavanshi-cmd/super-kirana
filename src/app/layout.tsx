@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { Providers } from '@/components/providers';
+import { THEME_BOOT } from '@/lib/theme';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -11,11 +12,12 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: 'सुपर किराणा', statusBarStyle: 'default' },
   robots: { index: false, follow: false },
 };
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#1747ad' };
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#b34d08' };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="mr">
+    <html lang="mr" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} /></head>
       <body><Providers>{children}</Providers></body>
     </html>
   );

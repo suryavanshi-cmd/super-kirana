@@ -1,11 +1,12 @@
 'use client';
 import Link from 'next/link';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { CustomerForm } from '@/components/customer-form';
 import { Button, Card, Dialog, EmptyState, ErrorBox, Field, Icon, LinkButton, Money, MoneyInput, Notice, PageHeader, Row, Section, Skeleton, StaleNote, useToast } from '@/components/ui';
 import { AppError, newKey, rpc, type CustomerDetail } from '@/lib/api';
-import { useQuery } from '@/lib/data';
+import { refreshScreens, useQuery } from '@/lib/data';
+import { useQuickEntry } from '@/components/quick-entry';
 import { formatDateTime, useI18n } from '@/lib/i18n';
 import { formatPaise, paiseToInputText, parseRupees } from '@/lib/money';
 import { shareText } from '@/lib/csv';
@@ -27,6 +28,18 @@ export default function CustomerPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<AppError | string | null>(null);
   const c = q.data;
+  const openEntry = useQuickEntry();
+  const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
+
+  async function remove() {
+    setBusy(true); setError(null);
+    try {
+      await rpc('delete_customer', { p_shop_id: shop.id, p_customer_id: id });
+      toast(t('cust.deleted')); refreshScreens(); router.replace('/home');
+    } catch (e) { setError(e instanceof AppError ? e : new AppError('UNKNOWN', 'server', String(e))); }
+    finally { setBusy(false); }
+  }
 
   async function saveOpening() {
     const p = parseRupees(opening, { allowZero: true });
@@ -68,7 +81,7 @@ export default function CustomerPage() {
       <div className="no-print fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-3xl gap-3 border-t border-line bg-white p-3 shadow-[0_-2px_8px_rgba(16,24,40,.06)]"
         style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
         {c.is_active
-          ? <Link href={`/udhari?customer=${c.id}`} data-testid="you-gave" className="flex min-h-13 flex-1 items-center justify-center gap-1 rounded-xl bg-due px-3 py-3 text-base font-bold text-white">{t('cust.gave')} ₹</Link>
+          ? <button type="button" onClick={() => openEntry('existing', c.id)} data-testid="you-gave" className="flex min-h-13 flex-1 items-center justify-center gap-1 rounded-xl bg-due px-3 py-3 text-base font-bold text-white">{t('cust.gave')} ₹</button>
           : <span className="flex min-h-13 flex-1 items-center justify-center rounded-xl bg-slate-200 px-3 py-3 font-bold text-muted">{t('cust.gave')} ₹</span>}
         {c.balance_paise > 0
           ? <Link href={`/customers/${c.id}/pay`} data-testid="you-got" className="flex min-h-13 flex-1 items-center justify-center gap-1 rounded-xl bg-got px-3 py-3 text-base font-bold text-white">{t('cust.got')} ₹</Link>
@@ -106,6 +119,17 @@ export default function CustomerPage() {
         </ul>
       </Section>
       {c.notes && <Section title={t('cust.notes')}><Card>{c.notes}</Card></Section>}
+      {isOwner && (
+        <div className="mt-6">
+          <Button variant="danger" full disabled={c.balance_paise !== 0} onClick={() => { setError(null); setDeleting(true); }} data-testid="delete-customer">{t('cust.delete')}</Button>
+          {c.balance_paise !== 0 && <p className="mt-1 text-center text-sm text-muted">{t('cust.deleteNeedZero')}</p>}
+        </div>
+      )}
+      <Dialog open={deleting} title={t('cust.delete')} onClose={() => !busy && setDeleting(false)}
+        actions={<><Button variant="danger" busy={busy} onClick={remove} data-testid="delete-confirm">{t('cust.delete')}</Button><Button variant="ghost" disabled={busy} onClick={() => setDeleting(false)}>{t('c.cancel')}</Button></>}>
+        <p>{t('cust.deleteConfirm', { n: c.name })}</p>
+        <ErrorBox error={error} />
+      </Dialog>
       <Dialog open={editing} title={t('cust.edit')} onClose={() => setEditing(false)}>
         <CustomerForm initial={{ id: c.id, name: spokenName || c.name, mobile: spokenMobile || (c.mobile ?? ''), notes: c.notes ?? '', is_active: c.is_active }}
           onCancel={() => setEditing(false)} onSaved={() => { setEditing(false); toast(t('cust.updated')); void q.reload(); }} />

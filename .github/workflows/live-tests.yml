@@ -1,0 +1,69 @@
+# Live browser tests on the DEMO shop (Android Chrome + iPhone Safari engines), after Vercel has
+# deployed this commit and any new database migration has been applied. The report (results,
+# timings, screenshots) is pushed to the `live-test-results` branch, and a summary is posted as the
+# commit status "live-tests". Needs the DEMO_CODE repository secret.
+name: Live tests (demo shop)
+
+on:
+  push:
+    branches: [main]
+    paths: ['src/**', 'tests/live/**', 'supabase/**', 'playwright.live.config.ts', '.github/workflows/live-tests.yml']
+  workflow_dispatch:
+
+concurrency: { group: live-tests, cancel-in-progress: true }
+permissions: { contents: write, statuses: write }
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      DEMO_CODE: ${{ secrets.DEMO_CODE }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for the Vercel deployment and database migrations of this commit
+        run: |
+          for i in $(seq 1 60); do
+            v=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/statuses" --jq '[.[] | select(.context=="Vercel – super-kirana")][0].state' || true)
+            m=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/statuses" --jq '[.[] | select(.context=="db-migrations")][0].state // "none"' || true)
+            echo "vercel=$v migrations=$m"
+            if [ "$v" = "success" ] && [ "$m" != "pending" ]; then break; fi
+            if [ "$v" = "failure" ] || [ "$v" = "error" ]; then echo "::error::Vercel deployment failed"; exit 1; fi
+            sleep 10
+          done
+          sleep 20   # let the new deployment take over the main address
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Run live tests
+        id: run
+        continue-on-error: true
+        run: npx playwright test -c playwright.live.config.ts
+      - name: Publish report and status
+        if: always()
+        run: |
+          mkdir -p live-report
+          node -e '
+            const fs=require("fs"); const r=JSON.parse(fs.readFileSync("live-report/results.json","utf8"));
+            const rows=[]; let pass=0, fail=0;
+            const walk=(s,proj)=>{ for (const sp of s.specs||[]) for (const t of sp.tests) { const res=t.results.at(-1)||{}; const ok=res.status==="passed"; ok?pass++:fail++;
+              rows.push(`| ${t.projectName} | ${sp.title} | ${ok?"PASS":"FAIL"} | ${res.duration??""} | ${(res.error?.message||"").split("\n")[0].replace(/\|/g,"/").slice(0,180)} |`);} for (const c of s.suites||[]) walk(c); };
+            for (const s of r.suites) walk(s);
+            const tm=fs.existsSync("live-report/timings.json")?fs.readFileSync("live-report/timings.json","utf8"):"{}";
+            fs.writeFileSync("live-report/REPORT.md", `# Live test report\n\nCommit ${process.env.GITHUB_SHA}\n\n**${pass} passed, ${fail} failed**\n\n| Device | Test | Result | ms | Error |\n|---|---|---|---|---|\n${rows.join("\n")}\n\n## Timings (ms)\n\n\`\`\`json\n${tm}\n\`\`\`\n`);
+            fs.writeFileSync("live-report/summary.txt", `${pass} passed, ${fail} failed`);
+          ' || echo "no results" > live-report/summary.txt
+          summary=$(cat live-report/summary.txt)
+          state=$([ "${{ steps.run.outcome }}" = "success" ] && echo success || echo failure)
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state="$state" -f context=live-tests -f description="$summary" >/dev/null
+          cat live-report/REPORT.md >> "$GITHUB_STEP_SUMMARY" || true
+          find live-report -name '*.zip' -delete; find live-report -name 'trace*' -prune -exec rm -rf {} + || true
+          git config user.name "live-tests"; git config user.email "live-tests@users.noreply.github.com"
+          mkdir -p "/tmp/out/$GITHUB_SHA" && cp -r live-report/. "/tmp/out/$GITHUB_SHA/"
+          git checkout -q --orphan live-test-results
+          git rm -rfq --cached . >/dev/null
+          git clean -fdxq
+          cp -r /tmp/out/. .
+          git add -A && git commit -qm "live tests $GITHUB_SHA: $summary"
+          git push -f origin live-test-results

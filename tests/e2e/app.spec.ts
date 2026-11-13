@@ -70,18 +70,18 @@ test('first-run setup creates the admin as owner of the seeded shop; home has ju
   await login(page, ADMIN.username, ADMIN.password);
   await expect(page).toHaveURL(/\/home$/);
   await expect(page.getByTestId('shop-name')).toHaveText('सुपर किराणा, निफाड');
-  await expect(page.getByRole('link', { name: /उधारी नोंदवा/ })).toBeVisible();
-  await expect(page.getByRole('link', { name: /फोटोवरून बिल/ })).toBeVisible();
+  await expect(page.getByTestId('home-new')).toBeVisible();
+  await expect(page.getByTestId('home-existing')).toBeVisible();
+  await expect(page.getByTestId('home-update')).toBeVisible();
   await expect(page.getByText('बाकी असलेले ग्राहक')).toBeVisible();
   await expect(page.getByText('कोणाकडेही बाकी नाही')).toBeVisible();
-  await expect(page.getByRole('navigation')).toHaveCount(0);           // no extra menus
   await page.goto('/setup');
   await expect(page.getByText('सेटअप आधीच पूर्ण झाला आहे')).toBeVisible();
 });
 
 test('A+B: new customer with ₹500 old dues; ₹315 bill with ₹200 paid → ₹615 total; receipt from server', async () => {
   await page.goto('/home');
-  await page.getByRole('link', { name: /उधारी नोंदवा/ }).click();
+  await page.goto('/udhari');
   await page.getByRole('button', { name: 'नवीन ग्राहक' }).click();
   await page.getByLabel('ग्राहकाचे नाव').fill('सुरेश पाटील');
   await page.getByLabel(/मोबाईल नंबर/).fill('9876543210');
@@ -180,7 +180,7 @@ test('voice: a spoken sentence fills the credit or payment screen; nothing is sa
     window.SpeechRecognition = window.webkitSpeechRecognition;
   `);
   await page.goto('/home');
-  await page.getByTestId('voice-entry').click();
+  await page.goto('/voice');
   await expect(page).toHaveURL(/\/voice$/);
 
   // Credit, Hinglish; the recogniser's second guess is the one that names a known customer.
@@ -294,7 +294,7 @@ test('offline: the pending list stays visible and saving is blocked', async () =
   await expect(pendingRow(page, 'सुरेश पाटील')).toBeVisible();
   await page.context().setOffline(true);
   await expect(page.getByText('इंटरनेट उपलब्ध नाही').first()).toBeVisible();
-  await page.getByRole('link', { name: /उधारी नोंदवा/ }).click();
+  await page.goto('/udhari');
   await page.getByRole('button', { name: /सुरेश पाटील/ }).click();
   await page.getByLabel('बिलाची रक्कम').fill('10');
   await expect(page.getByRole('button', { name: 'उधारी सेव्ह करा' })).toBeDisabled();
@@ -410,7 +410,7 @@ test('admin adds a cashier to a shop; cashier changes password, can record credi
   await changePassword(cashier, CASHIER.temp, CASHIER.password);
   await expect(cashier).toHaveURL(/\/home$/);
   await expect(pendingRow(cashier, 'सुरेश पाटील')).toBeVisible();
-  await cashier.getByRole('link', { name: /उधारी नोंदवा/ }).click();
+  await cashier.goto('/udhari');
   await cashier.getByRole('button', { name: /सुरेश पाटील/ }).click();
   await cashier.getByLabel('बिलाची रक्कम').fill('16');
   await cashier.getByRole('button', { name: 'उधारी सेव्ह करा' }).click();

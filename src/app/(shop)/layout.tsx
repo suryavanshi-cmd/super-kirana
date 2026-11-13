@@ -6,6 +6,7 @@ import { BottomTabs, showsTabs } from '@/components/bottom-tabs';
 import { DemoBanner } from '@/components/demo-banner';
 import { NavDrawer } from '@/components/nav-drawer';
 import { QuickAdd } from '@/components/quick-add';
+import { QuickEntryProvider } from '@/components/quick-entry';
 import { VoiceAssistant } from '@/components/voice-assistant';
 import { Icon, Skeleton } from '@/components/ui';
 import { prefetch, useOnline } from '@/lib/data';
@@ -51,6 +52,7 @@ export default function ShopLayout({ children }: { children: ReactNode }) {
     return <main className="mx-auto max-w-3xl p-4"><Skeleton lines={5} /></main>;
   }
   return (
+    <QuickEntryProvider>
     <div className="mx-auto min-h-dvh max-w-3xl bg-surface" style={{ '--fab-offset': bar ? '4.5rem' : '0px' } as CSSProperties}>
       <header className="no-print sticky top-0 z-30 flex items-center gap-1 bg-brand-700 px-2 py-2 text-white shadow-md" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
         <button type="button" onClick={() => setMenu(true)} aria-label={t('nav.menu')} aria-expanded={menu} data-testid="menu-button"
@@ -76,5 +78,6 @@ export default function ShopLayout({ children }: { children: ReactNode }) {
       <BottomTabs onMore={() => setMenu(true)} />
       <NavDrawer open={menu} onClose={closeMenu} />
     </div>
+    </QuickEntryProvider>
   );
 }

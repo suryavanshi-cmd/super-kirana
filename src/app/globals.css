@@ -3,23 +3,29 @@
 
 @theme {
   --font-sans: "Noto Sans Devanagari Variable", "Noto Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  /* Khata-style: deep blue app colour, red = you'll get (customer owes), green = you'll give / got. */
-  --color-brand-50: #eef3fd;
-  --color-brand-100: #d9e5fb;
-  --color-brand-200: #b3cbf6;
-  --color-brand-500: #2f6fe0;
-  --color-brand-600: #1d5bd6;
-  --color-brand-700: #1747ad;
-  --color-brand-800: #123a8c;
+  /* App colour (default orange; Settings → Appearance can switch it, see [data-theme] below).
+     red = you'll get (customer owes), green = you'll give / money got. */
+  --color-brand-50: #fff4ec;
+  --color-brand-100: #ffe4cf;
+  --color-brand-200: #ffc79e;
+  --color-brand-500: #ef6c00;
+  --color-brand-600: #c2570c;
+  --color-brand-700: #b34d08;
+  --color-brand-800: #8f3b08;
   --color-ink: #121826;
   --color-muted: #5b6475;
   --color-line: #e3e7ee;
   --color-surface: #f2f4f8;
   --color-due: #c62828;
   --color-due-bg: #fdecec;
-  --color-got: #1b8a4b;
+  --color-got: #157a41;
   --color-got-bg: #e7f6ed;
 }
+
+/* Other app colours (white text on 600/700 meets 4.5:1 in every theme). */
+html[data-theme="blue"] { --color-brand-50: #eef3fd; --color-brand-100: #d9e5fb; --color-brand-200: #b3cbf6; --color-brand-500: #2f6fe0; --color-brand-600: #1d5bd6; --color-brand-700: #1747ad; --color-brand-800: #123a8c; }
+html[data-theme="green"] { --color-brand-50: #ecf8f0; --color-brand-100: #d3f0dc; --color-brand-200: #a7e0b9; --color-brand-500: #22a04b; --color-brand-600: #15803d; --color-brand-700: #166534; --color-brand-800: #14532d; }
+html[data-theme="purple"] { --color-brand-50: #f4f0fe; --color-brand-100: #e8defd; --color-brand-200: #d0bdfb; --color-brand-500: #8b5cf6; --color-brand-600: #7c3aed; --color-brand-700: #6d28d9; --color-brand-800: #5b21b6; }
 
 html { font-size: 17px; -webkit-text-size-adjust: 100%; }
 body { background: var(--color-surface); color: var(--color-ink); font-family: var(--font-sans); line-height: 1.5; }

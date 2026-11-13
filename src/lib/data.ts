@@ -16,6 +16,11 @@ export function prefetch<T>(key: string, fetcher: () => Promise<T>, persist = fa
 
 export { clearMemoryCache, invalidate } from './cache';
 
+/** After a save: every open screen refetches its data now (lists, balances, totals). */
+export function refreshScreens(): void {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('sk:refresh'));
+}
+
 /**
  * Loads data from the server. With `cacheKey`, the last answer is shown immediately (from memory,
  * or from the device when `persist`), and refreshed in the background.
@@ -61,6 +66,11 @@ export function useQuery<T>(fetcher: (() => Promise<T>) | null, deps: unknown[],
   }, [persist]);
 
   const reload = useCallback(() => run(true), [run]);
+  useEffect(() => {
+    const onRefresh = () => { if (fn.current) void run(true); };
+    window.addEventListener('sk:refresh', onRefresh);
+    return () => window.removeEventListener('sk:refresh', onRefresh);
+  }, [run]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const hit = keyRef.current && fn.current ? mem.get(keyRef.current) : undefined;

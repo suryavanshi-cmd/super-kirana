@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type Ref, type SelectHTMLAttributes } from 'react';
 import { AppError, reportError } from '@/lib/api';
 import type { Key } from '@/lib/dictionary';
 import { errorKey, useI18n } from '@/lib/i18n';
@@ -112,12 +112,12 @@ export function Field({ label, hint, error, optional, children }: { label: strin
   );
 }
 const INPUT = 'block min-h-12 w-full rounded-xl border border-slate-400 bg-white px-3 text-base text-ink placeholder:text-slate-500 focus:border-brand-600 disabled:bg-slate-100';
-export function Input({ invalid, className, ...rest }: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }) {
+export function Input({ invalid, className, ...rest }: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean; ref?: Ref<HTMLInputElement> }) {
   return <input {...rest} aria-invalid={invalid || undefined} className={cx(INPUT, invalid && 'border-red-700', className)} />;
 }
 /** Money input: decimal keypad on phones, ₹ prefix, text value (parsed with parseRupees).
  *  With `words`, the typed amount is spelled out below so an extra zero is easy to spot. */
-export function MoneyInput({ invalid, className, words, ...rest }: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean; words?: boolean }) {
+export function MoneyInput({ invalid, className, words, ...rest }: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean; words?: boolean; ref?: Ref<HTMLInputElement> }) {
   const { locale } = useI18n();
   const parsed = words && typeof rest.value === 'string' && rest.value.trim() ? parseRupees(rest.value, { allowZero: true }) : null;
   return (

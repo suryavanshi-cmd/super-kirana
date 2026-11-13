@@ -7,7 +7,7 @@ import { useI18n } from '@/lib/i18n';
 import { useSession } from '@/lib/session';
 
 // Screens where the round + button helps. Forms with their own bottom buttons are left alone.
-const SHOW_ON = [/^\/home$/, /^\/customers$/, /^\/customers\/[^/]+\/ledger$/, /^\/store(\/(summary|insights|inventory(\/[^/]+)?))?$/, /^\/reports$/, /^\/bills\/[^/]+$/, /^\/payments\/[^/]+$/];
+const SHOW_ON = [/^\/customers$/, /^\/customers\/[^/]+\/ledger$/, /^\/store(\/(summary|insights|inventory(\/[^/]+)?))?$/, /^\/reports$/, /^\/bills\/[^/]+$/, /^\/payments\/[^/]+$/];
 
 /** Round "+" button at the bottom right (in thumb reach) that opens the everyday actions. */
 export function QuickAdd() {
