@@ -44,7 +44,7 @@ const LAKH = /^(लाख|lakh|lac|lakhs)$/i;
 const FRACTION: Record<string, number> = { 'दीड': 1.5, 'डेढ़': 1.5, 'डेढ': 1.5, 'अडीच': 2.5, 'ढाई': 2.5, 'सव्वा': 1.25, 'पावणे': -0.25, dedh: 1.5, dhai: 2.5, adich: 2.5, sava: 1.25 };
 const SADE = /^(साडे|साढ़े|साढे|sade|sadhe)$/i;
 
-function normalise(text: string): string {
+export function normalise(text: string): string {
   let s = '';
   for (const ch of text) {
     const cp = ch.codePointAt(0)!;
@@ -59,10 +59,10 @@ function normalise(text: string): string {
     .replace(/\s+/g, ' ').trim();
 }
 
-interface NumTok { start: number; end: number; value: number }
+export interface NumTok { start: number; end: number; value: number }
 
 /** Finds every amount in the tokens: "2000", "दोन हजार", "अडीचशे", "two thousand five hundred", "साडे तीन हजार". */
-function findNumbers(tokens: string[]): NumTok[] {
+export function findNumbers(tokens: string[]): NumTok[] {
   const out: NumTok[] = [];
   let i = 0;
   while (i < tokens.length) {
@@ -154,7 +154,7 @@ export function parseVoice(text: string, customers: CustomerRow[] = []): VoiceDr
 }
 
 // ------------------------------------------------------------------ who
-function editDistance(a: string, b: string): number {
+export function editDistance(a: string, b: string): number {
   let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
   for (let i = 1; i <= a.length; i++) {
     const cur = [i];
@@ -185,4 +185,19 @@ export function matchCustomers(heard: string, customers: CustomerRow[]): { custo
     const score = (sum / hWords.length) * (hWords.length >= cWords.length ? 1 : 0.92);
     return { customer: c, score: Math.round(score * 100) / 100 };
   }).filter((m) => m.score >= 0.6).sort((a, b) => b.score - a.score).slice(0, 4);
+}
+
+/** How alike a heard phrase is to a name (0–1), word by word, across Marathi and English spelling. */
+export function nameScore(heard: string, name: string): number {
+  if (sameName(name, heard)) return 1;
+  const hWords = skeleton(heard).split(' ').filter(Boolean);
+  const cWords = skeleton(name).split(' ').filter(Boolean);
+  if (!hWords.length || !cWords.length) return 0;
+  let sum = 0;
+  for (const hw of hWords) {
+    let best = 0;
+    for (const cw of cWords) best = Math.max(best, 1 - editDistance(hw, cw) / Math.max(hw.length, cw.length, 1));
+    sum += best;
+  }
+  return sum / hWords.length;
 }

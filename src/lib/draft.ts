@@ -4,11 +4,21 @@ import type { Method, Product } from './api';
 import { idbDel, idbGet, idbSet } from './idb';
 import { lineGrossPaise, paiseToInputText, parseQty, parseRupees, qtyToText, type Unit } from './money';
 
-export interface Line { id: string; productId: string | null; name: string; qty: string; unit: Unit; priceUnit: Unit; price: string; discount: string; fromOcr?: boolean }
+export interface Line {
+  id: string; productId: string | null; name: string; qty: string; unit: Unit; priceUnit: Unit; price: string; discount: string; fromOcr?: boolean;
+  flags?: string[];          // photo reader: things for the shopkeeper to check (cleared when the line is edited)
+  heard?: string;            // photo reader: the line as written on paper
+  paperPrice?: number;       // photo reader: price written on paper, when different from the shop price
+  priceVia?: 'typed' | 'voice' | 'photo';   // how the rate on this line was last set
+}
+/** One change made to the open bill (by typing, mic or photo), shown in the bill's change history. */
+export interface Change { at: number; how: 'typed' | 'voice' | 'photo'; text: string }
 export interface Draft {
   customerId: string | null; customerName: string | null; lines: Line[];
   paid: string; paidTouched: boolean; method: Method; reference: string; note: string;
   source: 'manual' | 'ocr'; ocrJobId: string | null; updatedAt: number;
+  changes?: Change[];
+  paperTotal?: number | null; // grand total written on the photographed paper, for a cross-check
 }
 export const emptyDraft = (): Draft => ({ customerId: null, customerName: null, lines: [], paid: '', paidTouched: false, method: 'cash', reference: '', note: '', source: 'manual', ocrJobId: null, updatedAt: Date.now() });
 

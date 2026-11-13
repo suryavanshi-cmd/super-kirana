@@ -33,7 +33,7 @@ function enhance(ctx: CanvasRenderingContext2D, w: number, h: number): void {
 }
 
 /** Shrinks a camera photo so OCR is fast on a phone and uploads stay small. */
-export async function downscale(image: Blob, maxSide = 1800, quality = 0.85): Promise<Blob> {
+export async function downscale(image: Blob, maxSide = 1800, quality = 0.85, contrast = true): Promise<Blob> {
   try {
     const bmp = await createImageBitmap(image);
     const scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
@@ -41,7 +41,7 @@ export async function downscale(image: Blob, maxSide = 1800, quality = 0.85): Pr
     canvas.width = Math.round(bmp.width * scale); canvas.height = Math.round(bmp.height * scale);
     const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
     ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
-    enhance(ctx, canvas.width, canvas.height);
+    if (contrast) enhance(ctx, canvas.width, canvas.height);
     return await new Promise<Blob>((ok) => canvas.toBlob((b) => ok(b ?? image), 'image/jpeg', quality));
   } catch { return image; }
 }

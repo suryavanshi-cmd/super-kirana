@@ -9,6 +9,8 @@ import { paiseToInputText, parseQty, parseRupees, qtyToText } from '@/lib/money'
 import { useShop } from '@/lib/session';
 import { fmtQty, isLow, num, type ProductStock } from '@/lib/store';
 
+interface PriceChange { id: number; old_price_paise: number | null; new_price_paise: number; unit: string; source: string; changed_at: string; changed_by_name: string | null }
+
 export default function ProductStockPage() {
   const { id } = useParams<{ id: string }>();
   const { t, locale } = useI18n();
@@ -16,6 +18,7 @@ export default function ProductStockPage() {
   const toast = useToast();
   const q = useQuery(() => rpc<ProductStock>('get_product_stock', { p_shop_id: shop.id, p_product_id: id }), [shop.id, id]);
   const p = q.data;
+  const hist = useQuery(() => rpc<PriceChange[]>('get_price_history', { p_shop_id: shop.id, p_product_id: id }), [shop.id, id]);
   const [price, setPrice] = useState<string | null>(null);
   const [level, setLevel] = useState<string | null>(null);
   const [counted, setCounted] = useState('');
@@ -33,7 +36,7 @@ export default function ProductStockPage() {
 
   async function run(what: string, fn: () => Promise<unknown>) {
     setBusy(what); setError(null);
-    try { await fn(); toast(t('inv.saved')); await q.reload(); return true; }
+    try { await fn(); toast(t('inv.saved')); await Promise.all([q.reload(), hist.reload()]); return true; }
     catch (e) { setError(e instanceof AppError ? e : new AppError('UNKNOWN', 'server')); return false; }
     finally { setBusy(null); }
   }
@@ -61,6 +64,25 @@ export default function ProductStockPage() {
           onClick={() => priceParsed.ok && void run('price', () => rpc('set_product_price', { p_shop_id: shop.id, p_product_id: p.id, p_price_paise: priceParsed.value }).then(() => setPrice(null)))}>
           {t('c.save')}
         </Button>
+      </Section>
+
+      <Section title={t('ph.title')}>
+        {!hist.data && (hist.loading ? <Skeleton lines={2} /> : <ErrorBox error={hist.error} onRetry={hist.reload} />)}
+        {hist.data && hist.data.length === 0 && <p className="text-muted">{t('ph.empty')}</p>}
+        <ol className="relative ml-2 border-l-2 border-brand-200" data-testid="price-history">
+          {(hist.data ?? []).map((h) => (
+            <li key={h.id} className="mb-3 ml-4">
+              <span className="absolute -left-[7px] mt-1.5 h-3 w-3 rounded-full bg-brand-600" aria-hidden="true" />
+              <p className="font-bold">
+                {h.old_price_paise !== null && <><span className="text-muted line-through"><Money paise={h.old_price_paise} /></span> → </>}
+                <Money paise={h.new_price_paise} /> <span className="text-sm font-normal text-muted">/ {t(`unit.${h.unit}` as 'unit.kg')}</span>
+              </p>
+              <p className="text-xs text-muted">
+                {formatDateTime(h.changed_at, locale, shop.timezone)} · {t(`ph.src.${h.source}` as 'ph.src.manual')}{h.changed_by_name ? ` · ${t('ph.by', { n: h.changed_by_name })}` : ''}
+              </p>
+            </li>
+          ))}
+        </ol>
       </Section>
 
       <Section title={t('inv.count')}>

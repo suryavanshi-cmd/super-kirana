@@ -14,6 +14,7 @@ import { applyCatalogue, matchProducts } from '@/lib/ocr/match';
 import { isResolved, parseText } from '@/lib/ocr/parse';
 import type { DraftItem, Flag } from '@/lib/ocr/types';
 import { useShop } from '@/lib/session';
+import { prepare, readBillPhoto, toDraftLines, visionAvailable } from '@/lib/vision';
 
 type Stage = 'capture' | 'preview' | 'reading' | 'review' | 'unclear';
 const MIN_CONFIDENCE = 45;
@@ -38,13 +39,56 @@ export default function ScanPage() {
   const camera = useRef<HTMLInputElement>(null);
   const gallery = useRef<HTMLInputElement>(null);
   const catalogue = useMemo(() => products.data ?? [], [products.data]);
+  const [fast, setFast] = useState<boolean | null>(null);    // Gemini photo reader configured?
+  const [elapsed, setElapsed] = useState(0);
+  const [note, setNote] = useState<string | null>(null);
+
+  // Ask once on opening (this also wakes the server so the first photo is quick).
+  useEffect(() => { let live = true; void visionAvailable(shop.id).then((ok) => { if (live) setFast(ok); }); return () => { live = false; }; }, [shop.id]);
+  useEffect(() => {
+    if (stage !== 'reading') return;
+    const t0 = Date.now(); setElapsed(0);
+    const id = setInterval(() => setElapsed((Date.now() - t0) / 1000), 100);
+    return () => clearInterval(id);
+  }, [stage]);
 
   useEffect(() => () => { if (imageUrl) URL.revokeObjectURL(imageUrl); }, [imageUrl]);
 
   function pick(file: File | undefined) {
     if (!file) return;
     if (imageUrl) URL.revokeObjectURL(imageUrl);
-    setImage(file); setImageUrl(URL.createObjectURL(file)); setError(null); setStage('preview');
+    setImage(file); setImageUrl(URL.createObjectURL(file)); setError(null); setNote(null);
+    // Fast path: straight from the camera to a ready bill, no extra tap.
+    void (async () => { if (online && fast !== false && await visionAvailable(shop.id)) void readFast(file); else setStage('preview'); })();
+  }
+
+  /** Photo → Gemini → bill lines with the shop's prices → bill screen (where the shopkeeper confirms). */
+  async function readFast(file: Blob) {
+    setStage('reading'); setProgress(0.1);
+    const t0 = Date.now();
+    try {
+      const prepared = await prepare(file);
+      setProgress(0.4);
+      const r = await readBillPhoto(prepared, shop.id);
+      if (r.lines.length === 0) { setItems([]); setStage('unclear'); return; }
+      const lines = toDraftLines(r).map((l) => (l.price && !(l.flags ?? []).includes('price') && !l.productId ? { ...l, priceVia: 'photo' as const } : l));
+      const seconds = ((Date.now() - t0) / 1000).toFixed(1);
+      const d = await loadDraft(scope);
+      await saveDraft(scope, { ...d, lines: [...d.lines, ...lines], source: 'ocr', ocrJobId: null, paperTotal: r.total_paise,
+        changes: [...(d.changes ?? []), { at: Date.now(), how: 'photo' as const, text: t('ch.photo', { n: lines.length, s: seconds }) }] });
+      // Keep a short-lived record of what was read (30 days), without slowing the shopkeeper down.
+      void rpc('log_ocr_job', { p_shop_id: shop.id, p_provider: `gemini:${r.model}`.slice(0, 40), p_status: 'recognized', p_raw_text: r.lines.map((x) => x.heard).join('\n'),
+        p_items: r.lines, p_mean_confidence: null }).catch(() => undefined);
+      router.push('/bill');
+    } catch {
+      // Gemini not reachable / not configured / over its limit: fall back to the older reader.
+      setNote(t('scan.aiFailed'));
+      setFast(false);
+      try {
+        const r = await recognizeBest(file, shop.id, setProgress);
+        toReview(r.text, r.lines, r.provider, r.confidence);
+      } catch { setError(t('scan.unclear')); setStage('unclear'); }
+    }
   }
   function toReview(text: string, lines: { text: string; confidence: number | null }[] | undefined, provider: string, confidence: number | null) {
     const parsed = parseText(text, lines).map((i) => applyCatalogue(i, catalogue));
@@ -177,8 +221,8 @@ export default function ScanPage() {
 
       {stage === 'capture' && (
         <div>
-          <p>{t('scan.intro')}</p>
-          <Notice tone="warn">{t('scan.honest')}</Notice>
+          <p>{fast ? t('scan.fastIntro') : t('scan.intro')}</p>
+          {!fast && <Notice tone="warn">{t('scan.honest')}</Notice>}
           <div className="mt-4 grid gap-3">
             <Button onClick={() => camera.current?.click()} className="min-h-16 text-lg"><Icon name="camera" className="h-7 w-7" />{t('scan.take')}</Button>
             <Button variant="secondary" onClick={() => gallery.current?.click()}>{t('scan.choose')}</Button>
@@ -202,7 +246,9 @@ export default function ScanPage() {
 
       {stage === 'reading' && (
         <div role="status" className="py-10 text-center">
-          <p className="text-lg font-semibold">{t('scan.reading')}</p>
+          <p className="text-lg font-semibold">{fast !== false ? t('scan.fast') : t('scan.reading')}</p>
+          <p className="num mt-1 text-muted">{t('scan.seconds', { s: elapsed.toFixed(1) })}</p>
+          {note && <p className="mt-2 text-sm text-due">{note}</p>}
           <div className="mx-auto mt-4 h-3 max-w-xs overflow-hidden rounded-full bg-slate-200"><div className="h-full bg-brand-600" style={{ width: `${Math.max(5, Math.round(progress * 100))}%` }} /></div>
         </div>
       )}
