@@ -127,9 +127,18 @@ async function demoLogin(req: Request, b: Record<string, unknown>) {
   if (!check?.ok) throw new Fail(401, 'INVALID_DEMO_CODE');
   let userId = check.user_id;
   if (!userId) {
-    userId = await createIdentity(`D${crypto.randomUUID()}x9`);
-    try { await db('svc_demo_bootstrap', { p_user_id: userId }); }
-    catch (e) { await svc.auth.admin.deleteUser(userId); throw e; }
+    // First ever demo sign-in: create the demo account and shop (with sample data) once.
+    const fresh = await createIdentity(`D${crypto.randomUUID()}x9`);
+    let r: { created: boolean };
+    try { r = await db<{ created: boolean }>('svc_demo_bootstrap', { p_user_id: fresh }); }
+    catch (e) { await svc.auth.admin.deleteUser(fresh); throw e; }
+    if (r.created) userId = fresh;
+    else {
+      // Another first sign-in created it a moment earlier: use that account, drop ours.
+      await svc.auth.admin.deleteUser(fresh);
+      userId = (await db<{ user_id: string | null }>('svc_demo_check', { p_code_hash: await sha(code) })).user_id;
+      if (!userId) throw new Fail(500, 'SERVER_ERROR');
+    }
   }
   const email = await emailOf(userId);
   if (!email) throw new Fail(500, 'SERVER_ERROR');
