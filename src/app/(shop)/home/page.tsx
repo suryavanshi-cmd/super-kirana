@@ -10,7 +10,7 @@ import { useCustomers } from '@/lib/lists';
 /** The whole app for a shopkeeper: two actions and the list of who owes what. */
 export default function HomePage() {
   const { t } = useI18n();
-  const { shop } = useShop();
+  const { shop, isOwner } = useShop();
   const list = useCustomers();
   const [q, setQ] = useState('');
   const rows = useMemo(() => {
@@ -36,6 +36,13 @@ export default function HomePage() {
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white"><Icon name="mic" className="h-6 w-6" /></span>
         <span className="min-w-0"><span className="block text-lg font-bold text-brand-800">{t('home.voice')}</span><span className="block truncate text-sm text-muted">{t('home.voiceHint')}</span></span>
       </Link>
+      {isOwner && (
+        <Link href="/store" className="mt-3 flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-white p-3 hover:border-brand-600" data-testid="store-entry">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800"><Icon name="chart" className="h-6 w-6" /></span>
+          <span className="min-w-0 flex-1"><span className="block text-lg font-bold text-brand-800">{t('home.store')}</span><span className="block truncate text-sm text-muted">{t('home.storeHint')}</span></span>
+          <Icon name="chevron" className="h-5 w-5 text-muted" />
+        </Link>
+      )}
 
       <Section title={t('home.customersDue')} action={list.data && total > 0 ? <span className="text-sm font-semibold text-due">{t('c.total')} <Money paise={total} /></span> : undefined}>
         <SearchBox value={q} onChange={setQ} placeholder={t('home.search')} />
