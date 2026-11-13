@@ -1,0 +1,46 @@
+# Deploys the Supabase edge functions whenever their code changes on main (or when run by hand).
+# Needs one repository secret: SUPABASE_ACCESS_TOKEN (Supabase → Account → Access Tokens).
+# The token stays in GitHub's encrypted secrets; it is never printed or committed.
+name: Deploy Supabase functions
+
+on:
+  push:
+    branches: [main]
+    paths: ['supabase/functions/**', '.github/workflows/deploy-functions.yml']
+  workflow_dispatch:
+
+concurrency: { group: supabase-functions, cancel-in-progress: false }
+permissions: { contents: read }
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: fzodhlpppcdiqonevmgy
+    steps:
+      - name: Check the access token is set
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "::error::Repository secret SUPABASE_ACCESS_TOKEN is missing. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: latest }
+      # verify_jwt matches how each function was first deployed:
+      # auth-admin and ocr check the caller themselves; the AI functions require a signed-in user.
+      - name: Deploy
+        run: |
+          set -e
+          supabase functions deploy auth-admin     --project-ref "$PROJECT_REF" --no-verify-jwt --use-api
+          supabase functions deploy ocr            --project-ref "$PROJECT_REF" --no-verify-jwt --use-api
+          supabase functions deploy ai-summary     --project-ref "$PROJECT_REF" --use-api
+          supabase functions deploy bill-vision    --project-ref "$PROJECT_REF" --use-api
+          supabase functions deploy speech-to-text --project-ref "$PROJECT_REF" --use-api
+      - name: Check every function answers
+        run: |
+          for f in auth-admin ai-summary bill-vision speech-to-text ocr; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -X OPTIONS "https://$PROJECT_REF.supabase.co/functions/v1/$f")
+            echo "$f → $code"; [ "$code" = "200" ] || exit 1
+          done
