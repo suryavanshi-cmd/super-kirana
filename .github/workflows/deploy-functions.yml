@@ -33,11 +33,11 @@ jobs:
       - name: Deploy
         run: |
           set -e
-          supabase functions deploy auth-admin     --project-ref "$PROJECT_REF" --no-verify-jwt --use-api
-          supabase functions deploy ocr            --project-ref "$PROJECT_REF" --no-verify-jwt --use-api
-          supabase functions deploy ai-summary     --project-ref "$PROJECT_REF" --use-api
-          supabase functions deploy bill-vision    --project-ref "$PROJECT_REF" --use-api
-          supabase functions deploy speech-to-text --project-ref "$PROJECT_REF" --use-api
+          supabase functions deploy auth-admin     --project-ref "$PROJECT_REF" --no-verify-jwt --use-api --yes
+          supabase functions deploy ocr            --project-ref "$PROJECT_REF" --no-verify-jwt --use-api --yes
+          supabase functions deploy ai-summary     --project-ref "$PROJECT_REF" --use-api --yes
+          supabase functions deploy bill-vision    --project-ref "$PROJECT_REF" --use-api --yes
+          supabase functions deploy speech-to-text --project-ref "$PROJECT_REF" --use-api --yes
       - name: Check every function answers
         run: |
           for f in auth-admin ai-summary bill-vision speech-to-text ocr; do
