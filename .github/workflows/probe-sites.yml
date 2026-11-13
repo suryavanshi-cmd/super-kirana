@@ -1,0 +1,26 @@
+# Checks which Vercel address serves a correctly configured build (Supabase address built in) and
+# posts the result as the commit status "site-probe". Reads public pages only.
+name: Probe live sites
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/probe-sites.yml']
+  workflow_dispatch:
+permissions: { contents: read, statuses: write }
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    env: { GH_TOKEN: '${{ github.token }}' }
+    steps:
+      - run: |
+          out=""
+          for host in super-kirana.vercel.app suryavanshi-cmd-super-kirana.vercel.app super-kirana-gd081sas-projects.vercel.app suryavanshi-cmd-super-kirana-gd081sas-projects.vercel.app; do
+            code=$(curl -s -o page.html -w '%{http_code}' "https://$host/login")
+            ok=no
+            for js in $(grep -o '/_next/static/[^"]*\.js' page.html | sort -u); do
+              if curl -s "https://$host$js" | grep -q 'fzodhlpppcdiqonevmgy.supabase.co'; then ok=yes; break; fi
+            done
+            out="$out $host=$code/$ok;"
+            echo "$host http=$code supabase-url-in-build=$ok"
+          done
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=success -f context=site-probe -f description="${out:0:139}"
