@@ -14,12 +14,12 @@ jobs:
     steps:
       - run: |
           out=""
-          for host in super-kirana.vercel.app super-kirana-gd081sas-projects.vercel.app suryavanshi-cmd-super-kirana-gd081sas-projects.vercel.app; do
+          for host in suryavanshi-cmd-super-kirana-gd081sas-projects.vercel.app suryavanshi-cmd-super-kirana-git-main-gd081sas-projects.vercel.app suryavanshi-cmd-super-kirana.vercel.app; do
             code=$(curl -s -D head.txt -o page.html -w '%{http_code}' "https://$host/login")
             ok=$(grep -i '^content-security-policy' head.txt | grep -q 'fzodhlpppcdiqonevmgy.supabase.co' && echo csp-yes || echo csp-no)
             js=0; for f in $(grep -o '/_next/static/[^"]*\.js' page.html | sort -u); do curl -s "https://$host$f" | grep -q 'fzodhlpppcdiqonevmgy' && js=$((js+1)); done
             ok="$ok,js$js"
-            out="$out $host=$code/$ok;"
+            out="$out ${host%%.vercel.app}=$code/$ok;"
             echo "$host http=$code supabase-url-in-build=$ok"
           done
           gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=success -f context=site-probe -f description="${out:0:139}"
