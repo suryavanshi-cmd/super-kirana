@@ -160,8 +160,10 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
 }
 
 // ------------------------------------------------------------------ money display
-export function Money({ paise, className }: { paise: number; className?: string }) {
-  return <span className={cx('num whitespace-nowrap', className)}>{formatPaise(paise)}</span>;
+export function Money({ paise, className, short }: { paise: number; className?: string; short?: boolean }) {
+  // short: whole rupees without ".00" (₹5,000), paise kept when there are any (₹45.50).
+  const s = formatPaise(paise);
+  return <span className={cx('num whitespace-nowrap', className)}>{short && s.endsWith('.00') ? s.slice(0, -3) : s}</span>;
 }
 /** Pending balance: always a word + an icon + colour, never colour alone. */
 export function DueTag({ paise }: { paise: number }) {

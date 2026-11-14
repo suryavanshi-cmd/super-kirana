@@ -44,11 +44,11 @@ export default function HomePage() {
         <div className="grid grid-cols-2 divide-x divide-line py-3 text-center">
           <div>
             <p className="text-sm text-muted">{t('home.willGive')}</p>
-            <p className="mt-0.5 text-xl font-bold text-got"><Money paise={give} /></p>
+            <p className="mt-0.5 text-xl font-bold text-got"><Money paise={give} short /></p>
           </div>
           <div>
             <p className="text-sm text-muted">{t('home.willGet')}</p>
-            <p className={`mt-0.5 text-xl font-bold ${get > 0 ? 'text-due' : ''}`} data-testid="total-get"><Money paise={get} /></p>
+            <p className={`mt-0.5 text-xl font-bold ${get > 0 ? 'text-due' : ''}`} data-testid="total-get"><Money paise={get} short /></p>
           </div>
         </div>
         <div className="grid grid-cols-2 border-t border-line text-xs font-bold uppercase tracking-wide">
@@ -88,7 +88,7 @@ export default function HomePage() {
                   <span className="block truncate text-sm text-muted">{c.last_at ? relativeTime(c.last_at, t) : c.mobile ?? ''}</span>
                 </span>
                 <span className="shrink-0 text-right leading-tight">
-                  <span className={`block text-base font-bold ${c.balance_paise > 0 ? 'text-due' : c.balance_paise < 0 ? 'text-got' : ''}`}><Money paise={Math.abs(c.balance_paise)} /></span>
+                  <span className={`block text-base font-bold ${c.balance_paise > 0 ? 'text-due' : c.balance_paise < 0 ? 'text-got' : ''}`}><Money paise={Math.abs(c.balance_paise)} short /></span>
                   {c.balance_paise !== 0 && <span className="block text-xs text-muted">{c.balance_paise > 0 ? t('home.youGet') : t('home.youGive')}</span>}
                 </span>
               </Link>
