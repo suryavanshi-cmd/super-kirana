@@ -41,6 +41,7 @@ function QuickEntrySheet({ register }: { register: (f: Open) => void }) {
   const sheet = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const amountRef = useRef<HTMLInputElement>(null);
+  const amountBox = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<EntryMode>('existing');
   const [name, setName] = useState('');
@@ -67,6 +68,7 @@ function QuickEntrySheet({ register }: { register: (f: Open) => void }) {
     register((m, id) => {
       // Inside the tap: un-hide and focus first, then render — iPhone opens the keyboard only here.
       if (sheet.current) sheet.current.inert = false;
+      if (amountBox.current) { amountBox.current.inert = m === 'update'; if (m !== 'update') amountBox.current.classList.remove('hidden'); }   // the amount box is always in the page, so it can take focus now
       (id ? amountRef.current : nameRef.current)?.focus({ preventScroll: true });
       reset();
       setMode(m); setCustomerId(id ?? null); setOpen(true);
@@ -194,7 +196,8 @@ function QuickEntrySheet({ register }: { register: (f: Open) => void }) {
               )}
             </div>
 
-            {mode !== 'update' && (
+            <div ref={amountBox} className={mode === 'update' ? 'hidden' : ''}>
+              {(
               <>
                 {/* 2. Amount */}
                 <label htmlFor="qe-amount" className="mb-1 block text-sm font-semibold">{t('qe.amount')}</label>
@@ -213,7 +216,8 @@ function QuickEntrySheet({ register }: { register: (f: Open) => void }) {
                 </button>
                 {!online && <p className="mt-2 text-sm font-semibold text-due">{t('bill.offlineBlock')}</p>}
               </>
-            )}
+              )}
+            </div>
           </form>
         )}
       </div>

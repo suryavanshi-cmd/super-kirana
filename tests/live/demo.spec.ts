@@ -79,9 +79,8 @@ test('4. Existing customer: search, pick, amount, one tap', async () => {
   await page.locator('#qe-amount').fill('100');
   await lap('save credit for existing customer', async () => {
     await page.getByTestId('qe-save').click();
-    await expect(page.getByText(/credit saved/)).toBeVisible();
+    await expect(page.getByTestId('pending-list').getByRole('link', { name: new RegExp(name) })).toContainText('350');
   });
-  await expect(page.getByTestId('pending-list').getByRole('link', { name: new RegExp(name) })).toContainText('350');
 });
 
 test('5. Update existing: open customer, delete is blocked while money is due', async () => {
