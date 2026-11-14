@@ -71,8 +71,7 @@ test('first-run setup creates the admin as owner of the seeded shop; home has ju
   await expect(page).toHaveURL(/\/home$/);
   await expect(page.getByTestId('shop-name')).toHaveText('सुपर किराणा, निफाड');
   await expect(page.getByTestId('home-new')).toBeVisible();
-  await expect(page.getByTestId('home-existing')).toBeVisible();
-  await expect(page.getByTestId('home-update')).toBeVisible();
+  await expect(page.getByTestId('khata-summary')).toBeVisible();
   await expect(page.getByText('बाकी असलेले ग्राहक')).toBeVisible();
   await expect(page.getByText('कोणाकडेही बाकी नाही')).toBeVisible();
   await page.goto('/setup');

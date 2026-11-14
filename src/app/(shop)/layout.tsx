@@ -53,7 +53,7 @@ export default function ShopLayout({ children }: { children: ReactNode }) {
   }
   return (
     <QuickEntryProvider>
-    <div className="mx-auto min-h-dvh max-w-3xl bg-surface" style={{ '--fab-offset': bar ? '4.5rem' : '0px' } as CSSProperties}>
+    <div className="mx-auto min-h-dvh max-w-3xl bg-surface" style={{ '--fab-offset': bar ? '4.75rem' : '0px' } as CSSProperties}>
       <header className="no-print sticky top-0 z-30 flex items-center gap-1 bg-brand-700 px-2 py-2 text-white shadow-md" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
         <button type="button" onClick={() => setMenu(true)} aria-label={t('nav.menu')} aria-expanded={menu} data-testid="menu-button"
           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full hover:bg-white/10"><Icon name="menu" className="h-7 w-7" /></button>

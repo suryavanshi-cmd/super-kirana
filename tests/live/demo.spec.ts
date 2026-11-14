@@ -36,9 +36,7 @@ test('1. demo code opens the demo shop in English', async () => {
     await expect(page).toHaveURL(/\/home$/);
     await expect(page.getByTestId('home-new')).toBeVisible();
   });
-  await expect(page.getByTestId('home-existing')).toBeVisible();
-  await expect(page.getByTestId('home-update')).toBeVisible();
-  await expect(page.getByTestId('pending-list')).toBeVisible();
+  await expect(page.getByTestId('khata-summary')).toBeVisible();
 });
 
 test('2. Appearance: colour changes instantly and is remembered', async () => {
@@ -69,35 +67,34 @@ test('3. New customer: keyboard ready, 3 fields, one tap saves', async () => {
   await expect(page.getByTestId('pending-list').getByRole('link', { name: new RegExp(name) })).toContainText('250');
 });
 
-test('4. Existing customer: search, pick, amount, one tap', async () => {
-  await page.getByTestId('home-existing').click();
-  await expect(page.locator('#qe-name')).toBeFocused();
-  await page.locator('#qe-name').fill(name.slice(0, 12));
-  await page.getByTestId('qe-suggestions').getByRole('button', { name: new RegExp(name) }).click();
+test('4. Search on home, open the customer, delete is blocked while money is due', async () => {
+  await page.getByTestId('home-search').fill(name.slice(0, 12));
+  await lap('tap customer → customer page', async () => {
+    await page.getByTestId('pending-list').getByRole('link', { name: new RegExp(name) }).click();
+    await expect(page.getByTestId('customer-balance')).toContainText('250');
+  });
+  await expect(page.getByTestId('delete-customer')).toBeDisabled();
+});
+
+test('5. You gave ₹: entry opens for that customer, cursor in amount, one tap saves', async () => {
+  await page.getByTestId('you-gave').click();
   await expect(page.getByTestId('qe-customer')).toContainText(name);
   await expect(page.locator('#qe-amount')).toBeFocused();
   await page.locator('#qe-amount').fill('100');
   await lap('save credit for existing customer', async () => {
     await page.getByTestId('qe-save').click();
-    await expect(page.getByTestId('pending-list').getByRole('link', { name: new RegExp(name) })).toContainText('350');
-  });
-});
-
-test('5. Update existing: open customer, delete is blocked while money is due', async () => {
-  await page.getByTestId('home-update').click();
-  await page.locator('#qe-name').fill(name);
-  await lap('pick customer → customer page', async () => {
-    await page.getByTestId('qe-suggestions').getByRole('button', { name: new RegExp(name) }).click();
     await expect(page.getByTestId('customer-balance')).toContainText('350');
   });
-  await expect(page.getByTestId('delete-customer')).toBeDisabled();
 });
 
-test('6. You gave ₹ on the customer page opens the entry for that customer', async () => {
-  await page.getByTestId('you-gave').click();
-  await expect(page.getByTestId('qe-customer')).toContainText(name);
-  await expect(page.locator('#qe-amount')).toBeFocused();
-  await page.getByRole('button', { name: /cancel/i }).first().click();
+test('6. Home shows totals and sorts the list', async () => {
+  await page.goto('/home');
+  await expect(page.getByTestId('khata-summary')).toBeVisible();
+  await page.getByTestId('home-sort').click();
+  await expect(page.getByText(/highest amount/)).toBeVisible();
+  await page.getByTestId('home-search').fill(name);
+  await page.getByTestId('pending-list').getByRole('link', { name: new RegExp(name) }).click();
+  await expect(page.getByTestId('customer-balance')).toContainText('350');
 });
 
 test('7. You got ₹: full payment in one tap, balance becomes 0', async () => {
@@ -124,7 +121,8 @@ test('8. Delete at ₹0: gone from lists, history kept', async () => {
 test('9. Speed: screens open from memory', async () => {
   await page.goto('/home');
   await expect(page.getByTestId('pending-list')).toBeVisible();
-  await lap('home → customers list (cached)', async () => {
+  await lap('home → More menu → customers (cached)', async () => {
+    await page.getByTestId('tab-more').click();
     await page.getByRole('link', { name: /customers/i }).first().click();
     await expect(page).toHaveURL(/\/customers$/);
   });

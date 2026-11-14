@@ -27,7 +27,7 @@ html[data-theme="blue"] { --color-brand-50: #eef3fd; --color-brand-100: #d9e5fb;
 html[data-theme="green"] { --color-brand-50: #ecf8f0; --color-brand-100: #d3f0dc; --color-brand-200: #a7e0b9; --color-brand-500: #22a04b; --color-brand-600: #15803d; --color-brand-700: #166534; --color-brand-800: #14532d; }
 html[data-theme="purple"] { --color-brand-50: #f4f0fe; --color-brand-100: #e8defd; --color-brand-200: #d0bdfb; --color-brand-500: #8b5cf6; --color-brand-600: #7c3aed; --color-brand-700: #6d28d9; --color-brand-800: #5b21b6; }
 
-html { font-size: 17px; -webkit-text-size-adjust: 100%; }
+html { font-size: 15px; -webkit-text-size-adjust: 100%; }
 body { background: var(--color-surface); color: var(--color-ink); font-family: var(--font-sans); line-height: 1.5; }
 /* Smooth, app-like touch: no 300 ms tap delay, no grey tap flash, no rubber-band behind sheets. */
 html, body { overscroll-behavior-y: none; }

@@ -51,6 +51,16 @@ export function todayIn(timeZone = 'Asia/Kolkata', offsetDays = 0): string {
 }
 
 /** "आज" / "काल" / "5 दिवसांपूर्वी", by the shop's calendar days. */
+/** "just now", "12 minutes ago", "5 hours ago", "3 days ago" — for lists. */
+export function relativeTime(iso: string, t: (k: Key, v?: Record<string, string | number>) => string, now = Date.now()): string {
+  const m = Math.max(0, Math.floor((now - Date.parse(iso)) / 60000));
+  if (m < 1) return t('time.justNow');
+  if (m < 60) return t('time.minutes', { n: m });
+  const h = Math.floor(m / 60);
+  if (h < 24) return t('time.hours', { n: h });
+  return t('time.days', { n: Math.floor(h / 24) });
+}
+
 export function relativeDay(iso: string, t: (k: Key, v?: Record<string, string | number>) => string, timeZone = 'Asia/Kolkata'): string {
   const day = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
   const diff = Math.round((Date.parse(day(new Date())) - Date.parse(day(new Date(iso)))) / 86400000);
