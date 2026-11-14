@@ -1,0 +1,1213 @@
+{
+  "config": {
+    "argv": [
+      "/opt/hostedtoolcache/node/22.23.4/x64/bin/node",
+      "/home/runner/work/super-kirana/super-kirana/node_modules/.bin/playwright",
+      "test",
+      "-c",
+      "playwright.live.config.ts"
+    ],
+    "configFile": "/home/runner/work/super-kirana/super-kirana/playwright.live.config.ts",
+    "rootDir": "/home/runner/work/super-kirana/super-kirana/tests/live",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "ci": {
+        "commitHref": "https://github.com/suryavanshi-cmd/super-kirana/commit/119ff982826bd4f794ae02443dd3bfcff20b35af",
+        "commitHash": "119ff982826bd4f794ae02443dd3bfcff20b35af",
+        "buildHref": "https://github.com/suryavanshi-cmd/super-kirana/actions/runs/43550335446"
+      },
+      "gitCommit": {
+        "shortHash": "119ff98",
+        "hash": "119ff982826bd4f794ae02443dd3bfcff20b35af",
+        "subject": "Live tests: check the entry sheet's closed state directly (WebKit counts slid-away sheets as in view)",
+        "body": "Live tests: check the entry sheet's closed state directly (WebKit counts slid-away sheets as in view)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01W1B8oYQVWxgAdpkxkp4y7z\n",
+        "author": {
+          "name": "Claude",
+          "email": "noreply@anthropic.com",
+          "time": 1794625898000
+        },
+        "committer": {
+          "name": "Claude",
+          "email": "noreply@anthropic.com",
+          "time": 1794625898000
+        },
+        "branch": "main"
+      },
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/suryavanshi-cmd/super-kirana/commit/119ff982826bd4f794ae02443dd3bfcff20b35af",
+            "commitHash": "119ff982826bd4f794ae02443dd3bfcff20b35af",
+            "buildHref": "https://github.com/suryavanshi-cmd/super-kirana/actions/runs/43550335446"
+          },
+          "gitCommit": {
+            "shortHash": "119ff98",
+            "hash": "119ff982826bd4f794ae02443dd3bfcff20b35af",
+            "subject": "Live tests: check the entry sheet's closed state directly (WebKit counts slid-away sheets as in view)",
+            "body": "Live tests: check the entry sheet's closed state directly (WebKit counts slid-away sheets as in view)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01W1B8oYQVWxgAdpkxkp4y7z\n",
+            "author": {
+              "name": "Claude",
+              "email": "noreply@anthropic.com",
+              "time": 1794625898000
+            },
+            "committer": {
+              "name": "Claude",
+              "email": "noreply@anthropic.com",
+              "time": 1794625898000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "android-chrome",
+        "name": "android-chrome",
+        "testDir": "/home/runner/work/super-kirana/super-kirana/tests/live",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/suryavanshi-cmd/super-kirana/commit/119ff982826bd4f794ae02443dd3bfcff20b35af",
+            "commitHash": "119ff982826bd4f794ae02443dd3bfcff20b35af",
+            "buildHref": "https://github.com/suryavanshi-cmd/super-kirana/actions/runs/43550335446"
+          },
+          "gitCommit": {
+            "shortHash": "119ff98",
+            "hash": "119ff982826bd4f794ae02443dd3bfcff20b35af",
+            "subject": "Live tests: check the entry sheet's closed state directly (WebKit counts slid-away sheets as in view)",
+            "body": "Live tests: check the entry sheet's closed state directly (WebKit counts slid-away sheets as in view)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01W1B8oYQVWxgAdpkxkp4y7z\n",
+            "author": {
+              "name": "Claude",
+              "email": "noreply@anthropic.com",
+              "time": 1794625898000
+            },
+            "committer": {
+              "name": "Claude",
+              "email": "noreply@anthropic.com",
+              "time": 1794625898000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "iphone-safari",
+        "name": "iphone-safari",
+        "testDir": "/home/runner/work/super-kirana/super-kirana/tests/live",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "live-report/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "demo.spec.ts",
+      "file": "demo.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "1. demo code opens the demo shop in English",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "android-chrome",
+              "projectName": "android-chrome",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7948,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:13:22.526Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-1-demo-code-opens-the-demo-shop-in-English-android-chrome/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-d2bba2bc9aec3e263172",
+          "file": "demo.spec.ts",
+          "line": 29,
+          "column": 5
+        },
+        {
+          "title": "2. Appearance: colour changes instantly and is remembered",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "android-chrome",
+              "projectName": "android-chrome",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 794,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:13:30.970Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-2-Appearance-colour-changes-instantly-and-is-remembered-android-chrome/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-cdde1e277a0b2d7c11b6",
+          "file": "demo.spec.ts",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "title": "3. New customer: keyboard ready, 3 fields, one tap saves",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "android-chrome",
+              "projectName": "android-chrome",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1508,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:13:31.796Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-3-New-customer-keyboard-ready-3-fields-one-tap-saves-android-chrome/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-b01b2fe1ded69be965e0",
+          "file": "demo.spec.ts",
+          "line": 52,
+          "column": 5
+        },
+        {
+          "title": "4. Search on home, open the customer, delete is blocked while money is due",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "android-chrome",
+              "projectName": "android-chrome",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 511,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:13:33.320Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-4-Search-on-home-open-3c0e0--blocked-while-money-is-due-android-chrome/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-f7b1ad0904358826c413",
+          "file": "demo.spec.ts",
+          "line": 70,
+          "column": 5
+        },
+        {
+          "title": "5. You gave ₹: entry opens for that customer, cursor in amount, one tap saves",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "android-chrome",
+              "projectName": "android-chrome",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1237,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:13:33.846Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-5-You-gave-₹-entry-op-0dad9-sor-in-amount-one-tap-saves-android-chrome/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-5bcb857dfd8b2db900a2",
+          "file": "demo.spec.ts",
+          "line": 79,
+          "column": 5
+        },
+        {
+          "title": "6. Home shows totals and sorts the list",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "android-chrome",
+              "projectName": "android-chrome",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 662,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:13:35.097Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-6-Home-shows-totals-and-sorts-the-list-android-chrome/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-992bdf9e9038f32c3d5a",
+          "file": "demo.spec.ts",
+          "line": 90,
+          "column": 5
+        },
+        {
+          "title": "7. You got ₹: full payment in one tap, balance becomes 0",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "android-chrome",
+              "projectName": "android-chrome",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1126,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:13:35.776Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-7-You-got-₹-full-payment-in-one-tap-balance-becomes-0-android-chrome/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-a656ca24fbdf5cdf14ea",
+          "file": "demo.spec.ts",
+          "line": 100,
+          "column": 5
+        },
+        {
+          "title": "8. Delete at ₹0: gone from lists, history kept",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "android-chrome",
+              "projectName": "android-chrome",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1039,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:13:36.917Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-8-Delete-at-₹0-gone-from-lists-history-kept-android-chrome/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-3a067fb62f1ffd9eeab2",
+          "file": "demo.spec.ts",
+          "line": 110,
+          "column": 5
+        },
+        {
+          "title": "9. Speed: screens open from memory",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "android-chrome",
+              "projectName": "android-chrome",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 833,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:13:37.977Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-9-Speed-screens-open-from-memory-android-chrome/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-816c5017ac174a18b49d",
+          "file": "demo.spec.ts",
+          "line": 121,
+          "column": 5
+        },
+        {
+          "title": "1. demo code opens the demo shop in English",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "iphone-safari",
+              "projectName": "iphone-safari",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9479,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:13:39.311Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-1-demo-code-opens-the-demo-shop-in-English-iphone-safari/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-7800e6bce1147884499c",
+          "file": "demo.spec.ts",
+          "line": 29,
+          "column": 5
+        },
+        {
+          "title": "2. Appearance: colour changes instantly and is remembered",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "iphone-safari",
+              "projectName": "iphone-safari",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3294,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:13:51.181Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-2-Appearance-colour-changes-instantly-and-is-remembered-iphone-safari/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-b4798831236f501447f7",
+          "file": "demo.spec.ts",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "title": "3. New customer: keyboard ready, 3 fields, one tap saves",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "iphone-safari",
+              "projectName": "iphone-safari",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3716,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:13:54.495Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-3-New-customer-keyboard-ready-3-fields-one-tap-saves-iphone-safari/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-404871e1de44e3f6a145",
+          "file": "demo.spec.ts",
+          "line": 52,
+          "column": 5
+        },
+        {
+          "title": "4. Search on home, open the customer, delete is blocked while money is due",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "iphone-safari",
+              "projectName": "iphone-safari",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1883,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:13:58.234Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-4-Search-on-home-open-3c0e0--blocked-while-money-is-due-iphone-safari/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-242baa86f165cae26f88",
+          "file": "demo.spec.ts",
+          "line": 70,
+          "column": 5
+        },
+        {
+          "title": "5. You gave ₹: entry opens for that customer, cursor in amount, one tap saves",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "iphone-safari",
+              "projectName": "iphone-safari",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1939,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:14:00.145Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-5-You-gave-₹-entry-op-0dad9-sor-in-amount-one-tap-saves-iphone-safari/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-9eeee86c774fcc7a8330",
+          "file": "demo.spec.ts",
+          "line": 79,
+          "column": 5
+        },
+        {
+          "title": "6. Home shows totals and sorts the list",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "iphone-safari",
+              "projectName": "iphone-safari",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1955,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:14:02.106Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-6-Home-shows-totals-and-sorts-the-list-iphone-safari/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-cdb74660330c7c8202ee",
+          "file": "demo.spec.ts",
+          "line": 90,
+          "column": 5
+        },
+        {
+          "title": "7. You got ₹: full payment in one tap, balance becomes 0",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "iphone-safari",
+              "projectName": "iphone-safari",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2752,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:14:04.076Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-7-You-got-₹-full-payment-in-one-tap-balance-becomes-0-iphone-safari/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-5af922fdddcca81fb0b2",
+          "file": "demo.spec.ts",
+          "line": 100,
+          "column": 5
+        },
+        {
+          "title": "8. Delete at ₹0: gone from lists, history kept",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "iphone-safari",
+              "projectName": "iphone-safari",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1798,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:14:06.847Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-8-Delete-at-₹0-gone-from-lists-history-kept-iphone-safari/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-731fc08b470f3c45088d",
+          "file": "demo.spec.ts",
+          "line": 110,
+          "column": 5
+        },
+        {
+          "title": "9. Speed: screens open from memory",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "iphone-safari",
+              "projectName": "iphone-safari",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2004,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T03:14:08.667Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/runner/work/super-kirana/super-kirana/tests/live/demo.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/runner/work/super-kirana/super-kirana/live-report/artifacts/demo-9-Speed-screens-open-from-memory-iphone-safari/test-finished-1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05384557491ebd602dd7-a184a9cc0a6dda3b0c8a",
+          "file": "demo.spec.ts",
+          "line": 121,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-14T03:13:21.996Z",
+    "duration": 49138.032999999996,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
