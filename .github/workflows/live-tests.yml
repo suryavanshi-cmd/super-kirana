@@ -26,7 +26,7 @@ jobs:
       - name: Wait for the Vercel deployment and database migrations of this commit
         run: |
           for i in $(seq 1 60); do
-            v=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/statuses" --jq '[.[] | select(.context=="Vercel – super-kirana")][0].state' || true)
+            v=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/statuses" --jq '[.[] | select(.context=="Vercel – suryavanshi-cmd-super-kirana")][0].state' || true)
             m=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/statuses" --jq '[.[] | select(.context=="db-migrations")][0].state // "none"' || true)
             echo "vercel=$v migrations=$m"
             if [ "$v" = "success" ] && [ "$m" != "pending" ]; then break; fi
