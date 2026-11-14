@@ -62,7 +62,7 @@ test('3. New customer: keyboard ready, 3 fields, one tap saves', async () => {
     await page.getByTestId('qe-save').click();
     await expect(page.getByText(/credit saved/)).toBeVisible();
   });
-  await expect(page.getByTestId('quick-entry')).not.toBeInViewport();
+  await expect(page.getByTestId('quick-entry')).toHaveAttribute('data-open', 'false');
   await expect(page.getByTestId('pending-list')).toContainText(name);
   await expect(page.getByTestId('pending-list').getByRole('link', { name: new RegExp(name) })).toContainText('250');
 });

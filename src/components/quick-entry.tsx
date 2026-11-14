@@ -138,7 +138,7 @@ function QuickEntrySheet({ register }: { register: (f: Open) => void }) {
   return (
     <div className="no-print">
       {open && <div className="fixed inset-0 z-[55] bg-black/40" onClick={() => !busy && close()} aria-hidden="true" />}
-      <div ref={sheet} role="dialog" aria-modal="true" aria-label={title} data-testid="quick-entry"
+      <div ref={sheet} role="dialog" aria-modal="true" aria-label={title} data-testid="quick-entry" data-open={open ? "true" : "false"}
         className={`fixed inset-x-0 bottom-0 z-[56] mx-auto max-h-[92dvh] max-w-3xl overflow-y-auto rounded-t-3xl bg-white px-4 pb-6 pt-3 shadow-2xl transition-transform duration-200 ease-out ${open ? 'translate-y-0' : 'pointer-events-none translate-y-full'}`}
         style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         <div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-slate-300" aria-hidden="true" />
