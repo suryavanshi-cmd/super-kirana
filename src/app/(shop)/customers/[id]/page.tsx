@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { CustomerForm } from '@/components/customer-form';
-import { Button, Card, Dialog, EmptyState, ErrorBox, Field, Icon, LinkButton, Money, MoneyInput, Notice, PageHeader, Row, Section, Skeleton, StaleNote, useToast } from '@/components/ui';
+import { Button, Card, Dialog, EmptyState, ErrorBox, Field, Icon, Money, MoneyInput, Notice, PageHeader, Row, Section, Skeleton, StaleNote, useToast } from '@/components/ui';
 import { AppError, newKey, rpc, type CustomerDetail } from '@/lib/api';
 import { refreshScreens, useQuery } from '@/lib/data';
 import { useQuickEntry } from '@/components/quick-entry';
@@ -59,24 +59,33 @@ export default function CustomerPage() {
         action={isOwner && <Button variant="ghost" onClick={() => setEditing(true)}>{t('c.edit')}</Button>} />
       <StaleNote show={q.stale} />
       {!c.is_active && <Notice tone="warn">{t('cust.inactiveNote')}</Notice>}
-      <Card>
-        <p className="text-sm font-semibold text-muted">
-          {c.balance_paise > 0 ? t('home.youGet') : c.balance_paise < 0 ? t('home.youGive') : t('cust.balance')}
-        </p>
-        <p className={`text-3xl font-bold ${c.balance_paise > 0 ? 'text-due' : c.balance_paise < 0 ? 'text-got' : ''}`} data-testid="customer-balance"><Money paise={c.balance_paise} /></p>
-        {c.mobile && <p className="num mt-1 text-sm text-muted">{c.mobile}</p>}
-        <p className="text-xs text-muted">{t('cust.since')}: {formatDateTime(c.created_at, locale, shop.timezone, false)}</p>
-      </Card>
-      {!c.reconciled && <Notice tone="warn">{t('cust.mismatch')}</Notice>}
-      {c.balance_paise > 0 && (() => {
+      {(() => {
         const text = t('cust.remindText', { n: c.name, s: locale === 'mr-IN' ? shop.name_mr : shop.name_en, a: formatPaise(c.balance_paise) });
         const phone = (c.mobile ?? '').replace(/\D/g, '');
         const wa = phone.length === 10 ? `91${phone}` : phone.length > 10 ? phone : '';
-        return wa
-          ? <a href={`https://wa.me/${wa}?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer" data-testid="remind"
-              className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-brand-600 bg-white px-4 font-semibold text-brand-700 hover:bg-brand-50"><Icon name="share" className="h-5 w-5" />{t('cust.remind')}</a>
-          : <Button variant="secondary" full className="mt-3" onClick={async () => { if ((await shareText(t('cust.remindShare'), text)) === 'copied') toast(t('c.copied')); }}><Icon name="share" className="h-5 w-5" />{t('cust.remindShare')}</Button>;
+        const chip = 'flex min-h-14 flex-col items-center justify-center gap-1 text-xs font-semibold text-brand-700 hover:bg-brand-50';
+        return (
+          <div className="overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(16,24,40,.08)]">
+            <div className="flex items-center justify-between gap-3 p-4">
+              <div className="min-w-0">
+                <p className="text-sm text-muted">{c.balance_paise > 0 ? t('home.youGet') : c.balance_paise < 0 ? t('home.youGive') : t('cust.balance')}</p>
+                {c.mobile && <p className="num text-xs text-muted">{c.mobile}</p>}
+                <p className="text-xs text-muted">{t('cust.since')}: {formatDateTime(c.created_at, locale, shop.timezone, false)}</p>
+              </div>
+              <p className={`text-2xl font-bold ${c.balance_paise > 0 ? 'text-due' : c.balance_paise < 0 ? 'text-got' : ''}`} data-testid="customer-balance"><Money paise={Math.abs(c.balance_paise)} short /></p>
+            </div>
+            {/* Khata style: small icon actions in one row */}
+            <div className={`grid border-t border-line ${c.balance_paise > 0 ? 'grid-cols-3 divide-x' : 'grid-cols-2 divide-x'} divide-line`}>
+              {c.balance_paise > 0 && (wa
+                ? <a href={`https://wa.me/${wa}?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer" data-testid="remind" className={chip}><Icon name="share" className="h-5 w-5" />{t('cust.remindShort')}</a>
+                : <button type="button" className={chip} onClick={async () => { if ((await shareText(t('cust.remindShare'), text)) === 'copied') toast(t('c.copied')); }}><Icon name="share" className="h-5 w-5" />{t('cust.remindShort')}</button>)}
+              <Link href={`/customers/${c.id}/ledger`} className={chip}><Icon name="list" className="h-5 w-5" />{t('cust.history')}</Link>
+              <Link href={`/customers/${c.id}/ledger?share=1`} className={chip}><Icon name="print" className="h-5 w-5" />{t('cust.statementShort')}</Link>
+            </div>
+          </div>
+        );
       })()}
+      {!c.reconciled && <Notice tone="warn">{t('cust.mismatch')}</Notice>}
       {/* Khata style: the two everyday actions, fixed at the bottom in thumb reach. */}
       <div className="no-print fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-3xl gap-3 border-t border-line bg-white p-3 shadow-[0_-2px_8px_rgba(16,24,40,.06)]"
         style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
@@ -86,10 +95,6 @@ export default function CustomerPage() {
         {c.balance_paise > 0
           ? <Link href={`/customers/${c.id}/pay`} data-testid="you-got" className="flex min-h-12 flex-1 items-center justify-center gap-1 rounded-xl bg-got px-3 py-2.5 text-sm font-bold text-white">{t('cust.got')} ₹</Link>
           : <span className="flex min-h-12 flex-1 items-center justify-center rounded-xl bg-slate-200 px-3 py-3 font-bold text-muted">{t('cust.got')} ₹</span>}
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <LinkButton href={`/customers/${c.id}/ledger`} variant="secondary"><Icon name="list" className="h-5 w-5" />{t('cust.history')}</LinkButton>
-        <LinkButton href={`/customers/${c.id}/ledger?share=1`} variant="secondary"><Icon name="share" className="h-5 w-5" />{t('cust.shareStatement')}</LinkButton>
       </div>
       <Section title={t('cust.statement')}>
         <Card>

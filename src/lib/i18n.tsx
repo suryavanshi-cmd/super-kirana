@@ -58,7 +58,8 @@ export function relativeTime(iso: string, t: (k: Key, v?: Record<string, string 
   if (m < 60) return t('time.minutes', { n: m });
   const h = Math.floor(m / 60);
   if (h < 24) return t('time.hours', { n: h });
-  return t('time.days', { n: Math.floor(h / 24) });
+  const d = Math.floor(h / 24);
+  return d === 1 ? t('time.yesterday') : t('time.days', { n: d });
 }
 
 export function relativeDay(iso: string, t: (k: Key, v?: Record<string, string | number>) => string, timeZone = 'Asia/Kolkata'): string {
