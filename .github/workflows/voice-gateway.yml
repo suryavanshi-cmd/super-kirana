@@ -1,0 +1,135 @@
+# Voice gateway (Cloud Run, asia-south1): test → build → push → deploy → smoke check.
+# Tests always run. Deploy runs only when GCP_PROJECT_ID and GCP_WIF_PROVIDER secrets exist
+# (created by services/voice-gateway/setup-gcp.sh). Keyless sign-in; no Google keys stored anywhere.
+# Result is posted as the commit status "voice-gateway" (URL + health + cold-start numbers).
+name: Voice gateway
+
+on:
+  push:
+    branches: [main]
+    paths: ['services/voice-gateway/**', '.github/workflows/voice-gateway.yml']
+  workflow_dispatch:
+
+concurrency: { group: voice-gateway, cancel-in-progress: false }
+permissions: { contents: read, id-token: write, statuses: write }
+
+env:
+  REGION: asia-south1
+  SERVICE: voice-gateway
+  SUPABASE_REF: fzodhlpppcdiqonevmgy
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: services/voice-gateway } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: services/voice-gateway/package-lock.json }
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run bench:parse
+      - run: npm run build
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      WIF_PROVIDER: ${{ secrets.GCP_WIF_PROVIDER }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+    steps:
+      - name: Waiting for Google Cloud setup?
+        id: gate
+        run: |
+          if [ -z "$PROJECT_ID" ] || [ -z "$WIF_PROVIDER" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=pending -f context=voice-gateway \
+              -f description="tests passed; waiting for GCP_PROJECT_ID + GCP_WIF_PROVIDER secrets (run setup-gcp.sh)" >/dev/null
+            echo "ready=no" >> "$GITHUB_OUTPUT"
+          else echo "ready=yes" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.ready == 'yes'
+      - uses: google-github-actions/auth@v2
+        if: steps.gate.outputs.ready == 'yes'
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: voice-deployer@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v2
+        if: steps.gate.outputs.ready == 'yes'
+
+      - name: Secrets → Secret Manager (values never printed)
+        if: steps.gate.outputs.ready == 'yes'
+        run: |
+          set -euo pipefail
+          RUNTIME="voice-gateway-run@${PROJECT_ID}.iam.gserviceaccount.com"
+          # Sarvam key lives in Supabase Vault; the service-role key comes from the Supabase API.
+          sarvam=$(curl -sf -X POST "https://api.supabase.com/v1/projects/$SUPABASE_REF/database/query" \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H 'Content-Type: application/json' \
+            --data '{"query":"select public.svc_sarvam_key() as k"}' | jq -r '.[0].k // empty')
+          keys=$(curl -sf "https://api.supabase.com/v1/projects/$SUPABASE_REF/api-keys?reveal=true" -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN")
+          service=$(echo "$keys" | jq -r '(map(select(.name=="service_role" and (.api_key|startswith("eyJ"))))[0].api_key) // (map(select(.type=="secret"))[0].api_key) // empty')
+          # The publishable (anon) key is public by design; only the /try test page uses it.
+          echo "PUBLISHABLE=$(echo "$keys" | jq -r '(map(select(.type=="publishable"))[0].api_key) // (map(select(.name=="anon"))[0].api_key) // empty')" >> "$GITHUB_ENV"
+          keys=''
+          echo "::add-mask::$sarvam"; echo "::add-mask::$service"
+          [ -n "$sarvam" ] || { echo "::error::Sarvam key not found in Supabase Vault (sarvam_api_key)"; exit 1; }
+          [ -n "$service" ] || { echo "::error::Supabase service key not readable with SUPABASE_ACCESS_TOKEN"; exit 1; }
+          put() {   # name value — adds a version only when the value changed, then destroys older versions (free tier: 6 active)
+            local name="$1" value="$2"
+            if ! gcloud secrets describe "$name" >/dev/null 2>&1; then
+              printf '%s' "$value" | gcloud secrets create "$name" --replication-policy=automatic --data-file=- >/dev/null
+            elif [ "$(gcloud secrets versions access latest --secret="$name" 2>/dev/null | sha256sum)" != "$(printf '%s' "$value" | sha256sum)" ]; then
+              printf '%s' "$value" | gcloud secrets versions add "$name" --data-file=- >/dev/null
+            fi
+            latest=$(gcloud secrets versions list "$name" --filter=state=ENABLED --sort-by=~createTime --limit=1 --format='value(name)')
+            for v in $(gcloud secrets versions list "$name" --filter='state=ENABLED' --format='value(name)'); do
+              [ "$v" = "$latest" ] || gcloud secrets versions destroy "$v" --secret="$name" --quiet >/dev/null
+            done
+            gcloud secrets add-iam-policy-binding "$name" --member="serviceAccount:$RUNTIME" --role=roles/secretmanager.secretAccessor >/dev/null
+          }
+          put sarvam-api-key "$sarvam"
+          put supabase-service-key "$service"
+          if ! gcloud secrets describe voice-gateway-token >/dev/null 2>&1; then put voice-gateway-token "$(openssl rand -hex 32)"; fi
+
+      - name: Build and push image
+        if: steps.gate.outputs.ready == 'yes'
+        run: |
+          set -euo pipefail
+          IMAGE="$REGION-docker.pkg.dev/$PROJECT_ID/voice/$SERVICE:${GITHUB_SHA::12}"
+          gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet
+          docker build -t "$IMAGE" services/voice-gateway
+          docker push "$IMAGE" >/dev/null
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+          echo "image size: $(docker image inspect "$IMAGE" --format '{{.Size}}' | numfmt --to=iec)"
+
+      - name: Deploy to Cloud Run
+        if: steps.gate.outputs.ready == 'yes'
+        run: |
+          set -euo pipefail
+          gcloud run deploy "$SERVICE" --image="$IMAGE" --region="$REGION" --platform=managed \
+            --service-account="voice-gateway-run@${PROJECT_ID}.iam.gserviceaccount.com" \
+            --allow-unauthenticated --port=8080 \
+            --min-instances=0 --max-instances=2 --concurrency=40 --cpu=1 --memory=256Mi --timeout=15 \
+            --cpu-throttling --cpu-boost --execution-environment=gen1 \
+            --set-env-vars="SUPABASE_URL=https://${SUPABASE_REF}.supabase.co,ALLOWED_ORIGINS=https://super-kirana-niphad.vercel.app,SUPABASE_PUBLISHABLE_KEY=${PUBLISHABLE},APP_VERSION=${GITHUB_SHA::12}" \
+            --set-secrets="SARVAM_API_KEY=sarvam-api-key:latest,SUPABASE_SERVICE_ROLE_KEY=supabase-service-key:latest,GATEWAY_TOKEN=voice-gateway-token:latest" \
+            --quiet
+          echo "URL=$(gcloud run services describe "$SERVICE" --region="$REGION" --format='value(status.url)')" >> "$GITHUB_ENV"
+
+      - name: Smoke check and report
+        if: steps.gate.outputs.ready == 'yes'
+        run: |
+          set -euo pipefail
+          health=$(curl -sf "$URL/healthz")
+          echo "$health"
+          echo "$health" | jq -e '.ok == true' >/dev/null || { gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=failure -f context=voice-gateway -f description="deployed but not ready: $(echo "$health" | jq -c .missing)" -f target_url="$URL/healthz"; exit 1; }
+          # Unauthenticated entry must be refused with a clear cause.
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$URL/v1/voice-entry")
+          [ "$code" = "401" ] || [ "$code" = "406" ] || [ "$code" = "415" ] || { echo "::error::expected 401 without a token, got $code"; exit 1; }
+          sleep 5
+          boot=$(gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=$SERVICE AND jsonPayload.message=started" \
+            --limit=1 --freshness=10m --format='value(jsonPayload.boot_ms,jsonPayload.process_uptime_ms)' | tr '\t' '/')
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=success -f context=voice-gateway \
+            -f description="live: $URL · container ready ${boot:-?} ms (listen/process)" -f target_url="$URL/healthz" >/dev/null

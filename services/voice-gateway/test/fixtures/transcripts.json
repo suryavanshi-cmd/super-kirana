@@ -1,0 +1,1151 @@
+{
+ "customers": [
+  {
+   "id": "c1",
+   "name": "Ramesh Patil"
+  },
+  {
+   "id": "c2",
+   "name": "सुनीता जाधव"
+  },
+  {
+   "id": "c3",
+   "name": "Suresh Patil"
+  },
+  {
+   "id": "c4",
+   "name": "हॉटेल अंबरी"
+  },
+  {
+   "id": "c5",
+   "name": "Sakshi"
+  },
+  {
+   "id": "c6",
+   "name": "विठ्ठल काळे"
+  },
+  {
+   "id": "c7",
+   "name": "Ganesh Shinde"
+  },
+  {
+   "id": "c8",
+   "name": "अनिता मोरे"
+  },
+  {
+   "id": "c9",
+   "name": "Pooja"
+  },
+  {
+   "id": "c10",
+   "name": "महेश कुलकर्णी"
+  },
+  {
+   "id": "c11",
+   "name": "Vijay Wagh"
+  },
+  {
+   "id": "c12",
+   "name": "शबाना शेख"
+  },
+  {
+   "id": "c13",
+   "name": "Kishor More"
+  },
+  {
+   "id": "c14",
+   "name": "संजय देशमुख"
+  },
+  {
+   "id": "c15",
+   "name": "Ravi"
+  }
+ ],
+ "shop_items": [
+  "Parle-G 100 g",
+  "Fortune Sunflower Oil 1 L",
+  "Tata Salt 1 kg"
+ ],
+ "cases": [
+  {
+   "text": "Ramesh Patil 250 ghetle",
+   "customer": "c1",
+   "amount": 250,
+   "type": "credit",
+   "items": []
+  },
+  {
+   "text": "Sunita tai saade teen she दूध दिले",
+   "customer": "c2",
+   "amount": 350,
+   "type": "payment",
+   "items": [
+    "doodh"
+   ]
+  },
+  {
+   "text": "hotel ambari two hundred fifty atta udhaar",
+   "customer": "c4",
+   "amount": 250,
+   "type": "credit",
+   "items": [
+    "atta"
+   ]
+  },
+  {
+   "text": "Sakshi pannas रु dal ani tandul दिलं",
+   "customer": "c5",
+   "amount": 50,
+   "type": "payment",
+   "items": [
+    "dal",
+    "tandul"
+   ]
+  },
+  {
+   "text": "विठ्ठल काळे अडीच हजार कांदे बटाटे dile",
+   "customer": "c6",
+   "amount": 2500,
+   "type": "payment",
+   "items": [
+    "kanda",
+    "batata"
+   ]
+  },
+  {
+   "text": "ganesh shinde ऐंशी तेल जमा",
+   "customer": "c7",
+   "amount": 80,
+   "type": "payment",
+   "items": [
+    "tel"
+   ]
+  },
+  {
+   "text": "अनिता मोरे 1500 rupaye biscuit घेतलं",
+   "customer": "c8",
+   "amount": 1500,
+   "type": "credit",
+   "items": [
+    "biscuit"
+   ]
+  },
+  {
+   "text": "महेश कुलकर्णी दोनशे पन्नास साखर घेतले",
+   "customer": "c10",
+   "amount": 250,
+   "type": "credit",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "vijay wagh पाचशे साबण nele",
+   "customer": "c11",
+   "amount": 500,
+   "type": "credit",
+   "items": [
+    "sabun"
+   ]
+  },
+  {
+   "text": "शबाना शेख २ हजार sakhar bharle",
+   "customer": "c12",
+   "amount": 2000,
+   "type": "payment",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "संजय देशमुख २५० chaha patti ghetle",
+   "customer": "c14",
+   "amount": 250,
+   "type": "credit",
+   "items": [
+    "chaha"
+   ]
+  },
+  {
+   "text": "रमेश पाटील paune paach she दिले",
+   "customer": "c1",
+   "amount": 475,
+   "type": "payment",
+   "items": []
+  },
+  {
+   "text": "सुनीता ताई paanch sau रुपये दूध udhaar",
+   "customer": "c2",
+   "amount": 500,
+   "type": "credit",
+   "items": [
+    "doodh"
+   ]
+  },
+  {
+   "text": "हॉटेल अंबरी वीस atta दिलं",
+   "customer": "c4",
+   "amount": 20,
+   "type": "payment",
+   "items": [
+    "atta"
+   ]
+  },
+  {
+   "text": "साक्षी sava don hajar dal ani tandul dile",
+   "customer": "c5",
+   "amount": 2250,
+   "type": "payment",
+   "items": [
+    "dal",
+    "tandul"
+   ]
+  },
+  {
+   "text": "vitthal kale navvad कांदे बटाटे जमा",
+   "customer": "c6",
+   "amount": 90,
+   "type": "payment",
+   "items": [
+    "kanda",
+    "batata"
+   ]
+  },
+  {
+   "text": "गणेश शिंदे साडे सातशे तेल घेतलं",
+   "customer": "c7",
+   "amount": 750,
+   "type": "credit",
+   "items": [
+    "tel"
+   ]
+  },
+  {
+   "text": "anita more dide-she biscuit घेतले",
+   "customer": "c8",
+   "amount": 150,
+   "type": "credit",
+   "items": [
+    "biscuit"
+   ]
+  },
+  {
+   "text": "mahesh kulkarni 80 रु साखर nele",
+   "customer": "c10",
+   "amount": 80,
+   "type": "credit",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "विजय वाघ तीनशे साबण bharle",
+   "customer": "c11",
+   "amount": 300,
+   "type": "payment",
+   "items": [
+    "sabun"
+   ]
+  },
+  {
+   "text": "shabana shaikh don she pannas sakhar ghetle",
+   "customer": "c12",
+   "amount": 250,
+   "type": "credit",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "sanjay deshmukh 1,200 rupaye chaha patti दिले",
+   "customer": "c14",
+   "amount": 1200,
+   "type": "payment",
+   "items": [
+    "chaha"
+   ]
+  },
+  {
+   "text": "रमेश पाटिल sava she udhaar",
+   "customer": "c1",
+   "amount": 125,
+   "type": "credit",
+   "items": []
+  },
+  {
+   "text": "सुनिता जाधव 250 रु दूध दिलं",
+   "customer": "c2",
+   "amount": 250,
+   "type": "payment",
+   "items": [
+    "doodh"
+   ]
+  },
+  {
+   "text": "hotel ambri saade teen she atta dile",
+   "customer": "c4",
+   "amount": 350,
+   "type": "payment",
+   "items": [
+    "atta"
+   ]
+  },
+  {
+   "text": "sakshee two hundred fifty dal ani tandul जमा",
+   "customer": "c5",
+   "amount": 250,
+   "type": "payment",
+   "items": [
+    "dal",
+    "tandul"
+   ]
+  },
+  {
+   "text": "vithal kale pannas कांदे बटाटे घेतलं",
+   "customer": "c6",
+   "amount": 50,
+   "type": "credit",
+   "items": [
+    "kanda",
+    "batata"
+   ]
+  },
+  {
+   "text": "ganesh shinde bhau अडीच हजार रुपये तेल घेतले",
+   "customer": "c7",
+   "amount": 2500,
+   "type": "credit",
+   "items": [
+    "tel"
+   ]
+  },
+  {
+   "text": "anita tai more ऐंशी biscuit nele",
+   "customer": "c8",
+   "amount": 80,
+   "type": "credit",
+   "items": [
+    "biscuit"
+   ]
+  },
+  {
+   "text": "महेश काका कुलकर्णी 1500 साखर bharle",
+   "customer": "c10",
+   "amount": 1500,
+   "type": "payment",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "wijay wagh दोनशे पन्नास साबण ghetle",
+   "customer": "c11",
+   "amount": 250,
+   "type": "credit",
+   "items": [
+    "sabun"
+   ]
+  },
+  {
+   "text": "shabana sheikh पाचशे sakhar दिले",
+   "customer": "c12",
+   "amount": 500,
+   "type": "payment",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "संजय शेठ देशमुख २ हजार रुपये chaha patti udhaar",
+   "customer": "c14",
+   "amount": 2000,
+   "type": "credit",
+   "items": [
+    "chaha"
+   ]
+  },
+  {
+   "text": "Rames Patil २५० रु दिलं",
+   "customer": "c1",
+   "amount": 250,
+   "type": "payment",
+   "items": []
+  },
+  {
+   "text": "sunita jadhav paune paach she दूध dile",
+   "customer": "c2",
+   "amount": 475,
+   "type": "payment",
+   "items": [
+    "doodh"
+   ]
+  },
+  {
+   "text": "hotel ambari paanch sau atta जमा",
+   "customer": "c4",
+   "amount": 500,
+   "type": "payment",
+   "items": [
+    "atta"
+   ]
+  },
+  {
+   "text": "Sakshi वीस rupaye dal ani tandul घेतलं",
+   "customer": "c5",
+   "amount": 20,
+   "type": "credit",
+   "items": [
+    "dal",
+    "tandul"
+   ]
+  },
+  {
+   "text": "विठ्ठल काळे sava don hajar कांदे बटाटे घेतले",
+   "customer": "c6",
+   "amount": 2250,
+   "type": "credit",
+   "items": [
+    "kanda",
+    "batata"
+   ]
+  },
+  {
+   "text": "ganesh shinde navvad तेल nele",
+   "customer": "c7",
+   "amount": 90,
+   "type": "credit",
+   "items": [
+    "tel"
+   ]
+  },
+  {
+   "text": "अनिता मोरे साडे सातशे biscuit bharle",
+   "customer": "c8",
+   "amount": 750,
+   "type": "payment",
+   "items": [
+    "biscuit"
+   ]
+  },
+  {
+   "text": "महेश कुलकर्णी dide-she साखर ghetle",
+   "customer": "c10",
+   "amount": 150,
+   "type": "credit",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "vijay wagh 80 rupaye साबण दिले",
+   "customer": "c11",
+   "amount": 80,
+   "type": "payment",
+   "items": [
+    "sabun"
+   ]
+  },
+  {
+   "text": "शबाना शेख तीनशे रुपये sakhar udhaar",
+   "customer": "c12",
+   "amount": 300,
+   "type": "credit",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "संजय देशमुख don she pannas chaha patti दिलं",
+   "customer": "c14",
+   "amount": 250,
+   "type": "payment",
+   "items": [
+    "chaha"
+   ]
+  },
+  {
+   "text": "Ramesh Patil 1,200 dile",
+   "customer": "c1",
+   "amount": 1200,
+   "type": "payment",
+   "items": []
+  },
+  {
+   "text": "Sunita tai sava she दूध जमा",
+   "customer": "c2",
+   "amount": 125,
+   "type": "payment",
+   "items": [
+    "doodh"
+   ]
+  },
+  {
+   "text": "हॉटेल अंबरी 250 rupaye atta घेतलं",
+   "customer": "c4",
+   "amount": 250,
+   "type": "credit",
+   "items": [
+    "atta"
+   ]
+  },
+  {
+   "text": "साक्षी saade teen she dal ani tandul घेतले",
+   "customer": "c5",
+   "amount": 350,
+   "type": "credit",
+   "items": [
+    "dal",
+    "tandul"
+   ]
+  },
+  {
+   "text": "vitthal kale two hundred fifty रु कांदे बटाटे nele",
+   "customer": "c6",
+   "amount": 250,
+   "type": "credit",
+   "items": [
+    "kanda",
+    "batata"
+   ]
+  },
+  {
+   "text": "गणेश शिंदे pannas तेल bharle",
+   "customer": "c7",
+   "amount": 50,
+   "type": "payment",
+   "items": [
+    "tel"
+   ]
+  },
+  {
+   "text": "anita more अडीच हजार biscuit ghetle",
+   "customer": "c8",
+   "amount": 2500,
+   "type": "credit",
+   "items": [
+    "biscuit"
+   ]
+  },
+  {
+   "text": "mahesh kulkarni ऐंशी rupaye साखर दिले",
+   "customer": "c10",
+   "amount": 80,
+   "type": "payment",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "विजय वाघ 1500 रुपये साबण udhaar",
+   "customer": "c11",
+   "amount": 1500,
+   "type": "credit",
+   "items": [
+    "sabun"
+   ]
+  },
+  {
+   "text": "shabana shaikh दोनशे पन्नास sakhar दिलं",
+   "customer": "c12",
+   "amount": 250,
+   "type": "payment",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "sanjay deshmukh पाचशे chaha patti dile",
+   "customer": "c14",
+   "amount": 500,
+   "type": "payment",
+   "items": [
+    "chaha"
+   ]
+  },
+  {
+   "text": "रमेश पाटील २ हजार जमा",
+   "customer": "c1",
+   "amount": 2000,
+   "type": "payment",
+   "items": []
+  },
+  {
+   "text": "सुनीता ताई २५० rupaye दूध घेतलं",
+   "customer": "c2",
+   "amount": 250,
+   "type": "credit",
+   "items": [
+    "doodh"
+   ]
+  },
+  {
+   "text": "hotel ambri paune paach she रुपये atta घेतले",
+   "customer": "c4",
+   "amount": 475,
+   "type": "credit",
+   "items": [
+    "atta"
+   ]
+  },
+  {
+   "text": "sakshee paanch sau dal ani tandul nele",
+   "customer": "c5",
+   "amount": 500,
+   "type": "credit",
+   "items": [
+    "dal",
+    "tandul"
+   ]
+  },
+  {
+   "text": "vithal kale वीस कांदे बटाटे bharle",
+   "customer": "c6",
+   "amount": 20,
+   "type": "payment",
+   "items": [
+    "kanda",
+    "batata"
+   ]
+  },
+  {
+   "text": "ganesh shinde bhau sava don hajar तेल ghetle",
+   "customer": "c7",
+   "amount": 2250,
+   "type": "credit",
+   "items": [
+    "tel"
+   ]
+  },
+  {
+   "text": "anita tai more navvad biscuit दिले",
+   "customer": "c8",
+   "amount": 90,
+   "type": "payment",
+   "items": [
+    "biscuit"
+   ]
+  },
+  {
+   "text": "महेश काका कुलकर्णी साडे सातशे साखर udhaar",
+   "customer": "c10",
+   "amount": 750,
+   "type": "credit",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "wijay wagh dide-she रु साबण दिलं",
+   "customer": "c11",
+   "amount": 150,
+   "type": "payment",
+   "items": [
+    "sabun"
+   ]
+  },
+  {
+   "text": "shabana sheikh 80 sakhar dile",
+   "customer": "c12",
+   "amount": 80,
+   "type": "payment",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "संजय शेठ देशमुख तीनशे chaha patti जमा",
+   "customer": "c14",
+   "amount": 300,
+   "type": "payment",
+   "items": [
+    "chaha"
+   ]
+  },
+  {
+   "text": "रमेश पाटिल don she pannas rupaye घेतलं",
+   "customer": "c1",
+   "amount": 250,
+   "type": "credit",
+   "items": []
+  },
+  {
+   "text": "सुनिता जाधव 1,200 रुपये दूध घेतले",
+   "customer": "c2",
+   "amount": 1200,
+   "type": "credit",
+   "items": [
+    "doodh"
+   ]
+  },
+  {
+   "text": "hotel ambari sava she atta nele",
+   "customer": "c4",
+   "amount": 125,
+   "type": "credit",
+   "items": [
+    "atta"
+   ]
+  },
+  {
+   "text": "Sakshi 250 dal ani tandul bharle",
+   "customer": "c5",
+   "amount": 250,
+   "type": "payment",
+   "items": [
+    "dal",
+    "tandul"
+   ]
+  },
+  {
+   "text": "विठ्ठल काळे saade teen she कांदे बटाटे ghetle",
+   "customer": "c6",
+   "amount": 350,
+   "type": "credit",
+   "items": [
+    "kanda",
+    "batata"
+   ]
+  },
+  {
+   "text": "ganesh shinde two hundred fifty तेल दिले",
+   "customer": "c7",
+   "amount": 250,
+   "type": "payment",
+   "items": [
+    "tel"
+   ]
+  },
+  {
+   "text": "अनिता मोरे pannas रुपये biscuit udhaar",
+   "customer": "c8",
+   "amount": 50,
+   "type": "credit",
+   "items": [
+    "biscuit"
+   ]
+  },
+  {
+   "text": "महेश कुलकर्णी अडीच हजार साखर दिलं",
+   "customer": "c10",
+   "amount": 2500,
+   "type": "payment",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "vijay wagh ऐंशी साबण dile",
+   "customer": "c11",
+   "amount": 80,
+   "type": "payment",
+   "items": [
+    "sabun"
+   ]
+  },
+  {
+   "text": "शबाना शेख 1500 sakhar जमा",
+   "customer": "c12",
+   "amount": 1500,
+   "type": "payment",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "संजय देशमुख दोनशे पन्नास chaha patti घेतलं",
+   "customer": "c14",
+   "amount": 250,
+   "type": "credit",
+   "items": [
+    "chaha"
+   ]
+  },
+  {
+   "text": "Rames Patil पाचशे घेतले",
+   "customer": "c1",
+   "amount": 500,
+   "type": "credit",
+   "items": []
+  },
+  {
+   "text": "sunita jadhav २ हजार रु दूध nele",
+   "customer": "c2",
+   "amount": 2000,
+   "type": "credit",
+   "items": [
+    "doodh"
+   ]
+  },
+  {
+   "text": "हॉटेल अंबरी २५० atta bharle",
+   "customer": "c4",
+   "amount": 250,
+   "type": "payment",
+   "items": [
+    "atta"
+   ]
+  },
+  {
+   "text": "साक्षी paune paach she dal ani tandul ghetle",
+   "customer": "c5",
+   "amount": 475,
+   "type": "credit",
+   "items": [
+    "dal",
+    "tandul"
+   ]
+  },
+  {
+   "text": "vitthal kale paanch sau rupaye कांदे बटाटे दिले",
+   "customer": "c6",
+   "amount": 500,
+   "type": "payment",
+   "items": [
+    "kanda",
+    "batata"
+   ]
+  },
+  {
+   "text": "गणेश शिंदे वीस तेल udhaar",
+   "customer": "c7",
+   "amount": 20,
+   "type": "credit",
+   "items": [
+    "tel"
+   ]
+  },
+  {
+   "text": "anita more sava don hajar biscuit दिलं",
+   "customer": "c8",
+   "amount": 2250,
+   "type": "payment",
+   "items": [
+    "biscuit"
+   ]
+  },
+  {
+   "text": "mahesh kulkarni navvad साखर dile",
+   "customer": "c10",
+   "amount": 90,
+   "type": "payment",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "विजय वाघ साडे सातशे साबण जमा",
+   "customer": "c11",
+   "amount": 750,
+   "type": "payment",
+   "items": [
+    "sabun"
+   ]
+  },
+  {
+   "text": "shabana shaikh dide-she sakhar घेतलं",
+   "customer": "c12",
+   "amount": 150,
+   "type": "credit",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "sanjay deshmukh 80 रुपये chaha patti घेतले",
+   "customer": "c14",
+   "amount": 80,
+   "type": "credit",
+   "items": [
+    "chaha"
+   ]
+  },
+  {
+   "text": "Ramesh Patil तीनशे nele",
+   "customer": "c1",
+   "amount": 300,
+   "type": "credit",
+   "items": []
+  },
+  {
+   "text": "Sunita tai don she pannas दूध bharle",
+   "customer": "c2",
+   "amount": 250,
+   "type": "payment",
+   "items": [
+    "doodh"
+   ]
+  },
+  {
+   "text": "hotel ambri 1,200 atta ghetle",
+   "customer": "c4",
+   "amount": 1200,
+   "type": "credit",
+   "items": [
+    "atta"
+   ]
+  },
+  {
+   "text": "sakshee sava she dal ani tandul दिले",
+   "customer": "c5",
+   "amount": 125,
+   "type": "payment",
+   "items": [
+    "dal",
+    "tandul"
+   ]
+  },
+  {
+   "text": "vithal kale 250 रुपये कांदे बटाटे udhaar",
+   "customer": "c6",
+   "amount": 250,
+   "type": "credit",
+   "items": [
+    "kanda",
+    "batata"
+   ]
+  },
+  {
+   "text": "ganesh shinde bhau saade teen she रु तेल दिलं",
+   "customer": "c7",
+   "amount": 350,
+   "type": "payment",
+   "items": [
+    "tel"
+   ]
+  },
+  {
+   "text": "anita tai more two hundred fifty biscuit dile",
+   "customer": "c8",
+   "amount": 250,
+   "type": "payment",
+   "items": [
+    "biscuit"
+   ]
+  },
+  {
+   "text": "umm ramesh patil aani mag 300 dile",
+   "customer": "c1",
+   "amount": 300,
+   "type": "payment",
+   "items": []
+  },
+  {
+   "text": "अं सुनीता ताई ना दोनशे दिले",
+   "customer": "c2",
+   "amount": 200,
+   "type": "payment",
+   "items": []
+  },
+  {
+   "text": "Sakshi 500",
+   "customer": "c5",
+   "amount": 500,
+   "type": null,
+   "items": [],
+   "missing": [
+    "type"
+   ]
+  },
+  {
+   "text": "Pooja sakhar ghetli",
+   "customer": "c9",
+   "amount": null,
+   "type": "credit",
+   "items": [
+    "sakhar"
+   ],
+   "missing": [
+    "amount"
+   ]
+  },
+  {
+   "text": "साखर घेतले",
+   "customer": null,
+   "amount": null,
+   "type": "credit",
+   "items": [
+    "sakhar"
+   ],
+   "missing": [
+    "customer",
+    "amount"
+   ]
+  },
+  {
+   "text": "₹450 रवी ला दिले",
+   "customer": "c15",
+   "amount": 450,
+   "type": "payment",
+   "items": []
+  },
+  {
+   "text": "ravi 1,250 rs tel ani sabun nele",
+   "customer": "c15",
+   "amount": 1250,
+   "type": "credit",
+   "items": [
+    "tel",
+    "sabun"
+   ]
+  },
+  {
+   "text": "Ramesh bhau 250 rupees sugar liya",
+   "customer": "c1",
+   "amount": 250,
+   "type": "credit",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "विजय वाघ ३०० रुपयांची साखर घेतली",
+   "customer": "c11",
+   "amount": 300,
+   "type": "credit",
+   "items": [
+    "sakhar"
+   ]
+  },
+  {
+   "text": "kishor more 2 hajar 500 jama",
+   "customer": "c13",
+   "amount": 2500,
+   "type": "payment",
+   "items": []
+  },
+  {
+   "text": "Anita more 99 dile",
+   "customer": "c8",
+   "amount": 99,
+   "type": "payment",
+   "items": []
+  },
+  {
+   "text": "गणेश शिंदे पंचाहत्तर रुपये चहा घेतला",
+   "customer": "c7",
+   "amount": null,
+   "type": "credit",
+   "items": [
+    "chaha"
+   ],
+   "missing": [
+    "amount"
+   ],
+   "note": "misspelt number word is not guessed"
+  },
+  {
+   "text": "गणेश शिंदे पंच्याहत्तर रुपये चहा घेतला",
+   "customer": "c7",
+   "amount": 75,
+   "type": "credit",
+   "items": [
+    "chaha"
+   ]
+  },
+  {
+   "text": "Unknown Person 200 dile",
+   "customer": null,
+   "amount": 200,
+   "type": "payment",
+   "items": []
+  },
+  {
+   "text": "Ramesh 100 Suresh 200",
+   "customer": "c1",
+   "amount": 100,
+   "type": null,
+   "items": [],
+   "note": "two entries in one press: the first one is taken; the app asks to confirm"
+  },
+  {
+   "text": "hotel ambari sava don hajar tel nele",
+   "customer": "c4",
+   "amount": 2250,
+   "type": "credit",
+   "items": [
+    "tel"
+   ]
+  },
+  {
+   "text": "महेश काका एक हजार बाकी",
+   "customer": "c10",
+   "amount": 1000,
+   "type": "credit",
+   "items": []
+  },
+  {
+   "text": "shabana 50 rupaye doodh",
+   "customer": "c12",
+   "amount": 50,
+   "type": null,
+   "items": [
+    "doodh"
+   ],
+   "missing": [
+    "type"
+   ]
+  },
+  {
+   "text": "संजय शेठ पावणे पाचशे भरले",
+   "customer": "c14",
+   "amount": 475,
+   "type": "payment",
+   "items": []
+  },
+  {
+   "text": "vitthal kaka teen hajar paachshe jama kele",
+   "customer": "c6",
+   "amount": 3500,
+   "type": "payment",
+   "items": []
+  },
+  {
+   "text": "sakshi saade char she gahu ghetle",
+   "customer": "c5",
+   "amount": 450,
+   "type": "credit",
+   "items": [
+    "gahu"
+   ]
+  },
+  {
+   "text": "sunita 2,000",
+   "customer": "c2",
+   "amount": 2000,
+   "type": null,
+   "items": [],
+   "missing": [
+    "type"
+   ]
+  },
+  {
+   "text": "",
+   "customer": null,
+   "amount": null,
+   "type": null,
+   "items": [],
+   "missing": [
+    "customer",
+    "amount",
+    "type"
+   ]
+  },
+  {
+   "text": "सुरेश पाटील १५० रुपये मॅगी आणि बिस्कीट घेतले",
+   "customer": "c3",
+   "amount": 150,
+   "type": "credit",
+   "items": [
+    "maggi",
+    "biscuit"
+   ]
+  },
+  {
+   "text": "Ravi bhai paanch sau diye",
+   "customer": "c15",
+   "amount": 500,
+   "type": "payment",
+   "items": []
+  }
+ ]
+}
