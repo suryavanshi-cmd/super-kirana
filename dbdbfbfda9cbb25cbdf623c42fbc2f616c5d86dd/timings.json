@@ -1,0 +1,38 @@
+{
+  "android-chrome": {
+    "timings": {
+      "open demo page": 1292,
+      "demo sign-in → home": 9428,
+      "tap New → name box ready": 66,
+      "save new customer + credit": 1067,
+      "tap customer → customer page": 827,
+      "save credit for existing customer": 1034,
+      "save payment → back to customer": 1334,
+      "delete customer": 829,
+      "home → More menu → customers (cached)": 509,
+      "page ttfb": 37,
+      "page domReady": 52,
+      "page load": 75
+    },
+    "consoleErrors": [],
+    "customer": "Live Test 1115115838"
+  },
+  "iphone-safari": {
+    "timings": {
+      "open demo page": 447,
+      "demo sign-in → home": 6692,
+      "tap New → name box ready": 366,
+      "save new customer + credit": 1249,
+      "tap customer → customer page": 1212,
+      "save credit for existing customer": 1017,
+      "save payment → back to customer": 949,
+      "delete customer": 1043,
+      "home → More menu → customers (cached)": 983,
+      "page ttfb": 32,
+      "page domReady": 90,
+      "page load": 114
+    },
+    "consoleErrors": [],
+    "customer": "Live Test 1115115925"
+  }
+}
