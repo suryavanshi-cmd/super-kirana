@@ -15,7 +15,7 @@ import { E, GatewayError } from './errors';
 import { log } from './log';
 import { parse } from './parser/parse';
 import { checkRate } from './ratelimit';
-import { transcribe } from './sarvam';
+import { preconnectSarvam, transcribe } from './sarvam';
 import { TRY_PAGE } from './try-page';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -61,8 +61,17 @@ export function buildServer(): FastifyInstance {
     void reply.status(ge.status).send({ error: { code: ge.code, message: ge.en, message_mr: ge.mr, detail: ge.detail ?? null }, request_id: req.id });
   });
 
-  app.get('/healthz', async () => {
-    warmJwks();                                                             // start loading token keys before the first entry
+  // Warm-up. Call it when the khata screen opens. With the user's token it also pre-loads that shop's
+  // customers + keyterms, so the first spoken entry only waits for Sarvam. Never calls Sarvam STT.
+  app.get('/healthz', async (req) => {
+    warmJwks();
+    preconnectSarvam();
+    if (req.headers.authorization && missingSettings().length === 0) {
+      const shop = (req.query as { shop_id?: string }).shop_id;
+      void verifyUser(req.headers.authorization)
+        .then((uid) => getContext(uid, shop && UUID.test(shop) ? shop : null))
+        .catch(() => undefined);                                            // warm-up never fails the health check
+    }
     return { ok: missingSettings().length === 0, version: config.version, uptime_s: Math.round((Date.now() - startedAt) / 1000), shops_cached: cacheSize(), missing: missingSettings() };
   });
 
@@ -153,6 +162,7 @@ export function buildServer(): FastifyInstance {
 if (process.env.VITEST === undefined) {
   const app = buildServer();
   const t0 = performance.now();
+  preconnectSarvam();                                                      // a fresh instance opens its Sarvam connection at once
   app.listen({ port: config.port, host: '0.0.0.0' }).then(() => {
     log.info('started', { port: config.port, version: config.version, boot_ms: Math.round(performance.now() - t0), process_uptime_ms: Math.round(process.uptime() * 1000), missing: missingSettings() });
   }).catch((e) => { log.error(e, { phase: 'listen' }); process.exit(1); });

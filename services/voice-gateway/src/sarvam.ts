@@ -39,6 +39,16 @@ async function call(audio: Buffer, mime: string, model: 'saaras:v4' | 'saaras:v3
   return { transcript: (j.transcript ?? '').trim(), id: j.request_id };
 }
 
+let lastWarm = 0;
+/** Opens (or keeps open) the TLS connection to Sarvam so the first real request skips the ~150–300 ms
+ *  handshake. A HEAD to the API host is not a transcription and costs nothing. At most once per 30 s. */
+export function preconnectSarvam(): void {
+  if (!config.sarvamKey || Date.now() - lastWarm < 30_000 || fetchImpl !== fetch) return;
+  lastWarm = Date.now();
+  void fetch(new URL('/', config.sarvamUrl), { method: 'HEAD', dispatcher: agent, signal: AbortSignal.timeout(3000) })
+    .then((r) => r.body?.cancel()).catch(() => undefined);
+}
+
 export async function transcribe(audio: Buffer, mime: string, keyterms: string[]): Promise<SttResult> {
   const t0 = performance.now();
   try {

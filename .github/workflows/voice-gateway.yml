@@ -111,7 +111,7 @@ jobs:
           gcloud run deploy "$SERVICE" --image="$IMAGE" --region="$REGION" --platform=managed \
             --service-account="voice-gateway-run@${PROJECT_ID}.iam.gserviceaccount.com" \
             --allow-unauthenticated --port=8080 \
-            --min-instances=0 --max-instances=2 --concurrency=40 --cpu=1 --memory=256Mi --timeout=15 \
+            --min-instances=${{ vars.VOICE_MIN_INSTANCES || 0 }} --max-instances=2 --concurrency=40 --cpu=1 --memory=256Mi --timeout=15 \
             --cpu-throttling --cpu-boost --execution-environment=gen1 \
             --set-env-vars="SUPABASE_URL=https://${SUPABASE_REF}.supabase.co,ALLOWED_ORIGINS=https://super-kirana-niphad.vercel.app,SUPABASE_PUBLISHABLE_KEY=${PUBLISHABLE},APP_VERSION=${GITHUB_SHA::12}" \
             --set-secrets="SARVAM_API_KEY=sarvam-api-key:latest,SUPABASE_SERVICE_ROLE_KEY=supabase-service-key:latest,GATEWAY_TOKEN=voice-gateway-token:latest" \

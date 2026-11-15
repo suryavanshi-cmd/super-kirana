@@ -18,7 +18,7 @@ Phone (PWA) ── audio (webm/ogg opus, mp4, wav ≤ 300 KB, ≤ 10 s) + Supaba
 
 | Route | Auth | What |
 |---|---|---|
-| `GET /healthz` | none | Warm-up (no Sarvam call). Also pre-loads the token keys. |
+| `GET /healthz` | none (optional user token) | Warm-up, never calls Sarvam STT: opens the Sarvam connection, loads token keys, and with the user's token (+ optional `?shop_id=`) pre-loads that shop's customers and keyterms. Call it when the khata screen opens. |
 | `POST /v1/voice-entry` | `Authorization: Bearer <Supabase access token>` | multipart field `audio` (+ optional `shop_id` if the user has several shops) |
 | `POST /v1/cache/invalidate` | `x-gateway-token: <GATEWAY_TOKEN>` **or** the member's own JWT | body `{ "shop_id": "…" }` — refresh after adding a customer. Unknown names also trigger one automatic refresh if the cache is older than 1 minute. |
 | `GET /try` | demo code | Phone test page (demo shop only). Set `TRY_PAGE=0` to remove it. |
@@ -76,7 +76,7 @@ result. Never logged: audio, tokens, keys, phone numbers (masked if spoken).
 
 See `.env.example`. On Cloud Run: `SARVAM_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GATEWAY_TOKEN` come from
 Secret Manager; `SUPABASE_URL`, `ALLOWED_ORIGINS`, `SUPABASE_PUBLISHABLE_KEY` (public) are env vars.
-Cloud Run: min 0 / max 2 instances, concurrency 40, 1 vCPU, 256 MiB, 15 s timeout, CPU only during requests,
+Cloud Run: min 0 (set the GitHub variable `VOICE_MIN_INSTANCES=1` to remove cold starts; ≈ ₹400–700/month) / max 2 instances, concurrency 40, 1 vCPU, 256 MiB, 15 s timeout, CPU only during requests,
 startup CPU boost, gen1. The service-role key is used for exactly one call: `svc_voice_context` (read-only).
 
 ## Deploy

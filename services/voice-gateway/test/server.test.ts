@@ -177,3 +177,17 @@ describe('other routes', () => {
     expect(evil.headers['access-control-allow-origin']).toBeUndefined();
   });
 });
+
+describe('warm-up', () => {
+  it('GET /healthz with the user token pre-loads the shop, so the next entry needs no Supabase call', async () => {
+    const app = buildServer();
+    const r = await app.inject({ method: 'GET', url: '/healthz', headers: { authorization: `Bearer ${token}` } });
+    expect(r.statusCode).toBe(200);
+    await new Promise((res) => setTimeout(res, 50));
+    await app.close();
+    expect(ctxCalls).toBe(1);
+    await post(clip('speech.ogg'));
+    expect(ctxCalls).toBe(1);
+    expect(sarvamCalls).toHaveLength(1);
+  });
+});
