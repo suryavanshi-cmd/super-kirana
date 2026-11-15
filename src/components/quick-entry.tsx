@@ -165,10 +165,10 @@ function QuickEntrySheet({ register }: { register: (f: Open) => void }) {
               <label htmlFor="qe-name" className="mb-1 block text-sm font-semibold">{mode === 'new' ? t('qe.name') : t('qe.search')}</label>
               <div className="flex gap-2">
                 <Input id="qe-name" ref={nameRef} value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" autoCapitalize="words" enterKeyHint="next" maxLength={120}
-                  invalid={showErrors && (mode === 'new' ? !name.trim() : !customer)} className="h-14 text-lg" data-testid="qe-name"
+                  invalid={showErrors && (mode === 'new' ? !name.trim() : !customer)} className="h-12 text-base" data-testid="qe-name"
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (suggestions.length === 1) pick(suggestions[0]); else amountRef.current?.focus(); } }} />
                 <button type="button" onClick={() => (listening ? speech.stop() : void speech.start())} aria-label={t('qe.speak')} data-testid="qe-mic"
-                  className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-white ${listening ? 'animate-pulse bg-red-600' : 'bg-brand-600'}`}><Icon name="mic" /></button>
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white ${listening ? 'animate-pulse bg-red-600' : 'bg-brand-600'}`}><Icon name="mic" /></button>
               </div>
               {(listening || speech.status === 'thinking') && <p className="mt-1 text-sm text-muted">{speechLabel(t, speech, '')}</p>}
               <MicHelp status={speech.status} os={speech.os} onRetry={speech.retry} cause={speech.cause} />
@@ -202,7 +202,7 @@ function QuickEntrySheet({ register }: { register: (f: Open) => void }) {
                 {/* 2. Amount */}
                 <label htmlFor="qe-amount" className="mb-1 block text-sm font-semibold">{t('qe.amount')}</label>
                 <MoneyInput id="qe-amount" ref={amountRef} value={amount} onChange={(e) => setAmount(e.target.value)} words enterKeyHint="next" data-testid="qe-amount"
-                  invalid={showErrors && !amt.ok} className="h-14 text-2xl"
+                  invalid={showErrors && !amt.ok} className="h-12 text-xl"
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); (document.getElementById('qe-what') as HTMLInputElement | null)?.focus(); } }} />
                 {showErrors && !amt.ok && <p role="alert" className="mt-1 text-sm font-medium text-red-800">{t('ud.amountNeeded')}</p>}
                 {/* 3. What they bought (optional) */}
@@ -210,7 +210,7 @@ function QuickEntrySheet({ register }: { register: (f: Open) => void }) {
                 <Input id="qe-what" value={what} onChange={(e) => setWhat(e.target.value)} maxLength={120} autoComplete="off" enterKeyHint="done" placeholder={t('ud.defaultItem')} data-testid="qe-what" />
                 <ErrorBox error={error} notSaved />
                 <button type="submit" disabled={busy || !online} data-testid="qe-save"
-                  className="mt-4 flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand-600 text-lg font-bold text-white disabled:bg-brand-200">
+                  className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-600 text-base font-bold text-white disabled:bg-brand-200">
                   {busy && <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden="true" />}
                   {busy ? t('bill.saving') : amt.ok ? `${t('qe.save')} · ${formatPaise(amt.value)}` : t('qe.save')}
                 </button>

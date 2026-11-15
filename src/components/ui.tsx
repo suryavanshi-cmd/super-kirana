@@ -92,7 +92,7 @@ export function PageHeader({ title, back, action }: { title: string; back?: stri
   return (
     <div className="no-print mb-4 flex items-center gap-2">
       {back && <Link href={back} aria-label={t('nav.back')} className="-ml-2 flex h-12 w-12 items-center justify-center rounded-full hover:bg-slate-100"><Icon name="back" /></Link>}
-      <h1 className="min-w-0 flex-1 truncate text-xl font-bold">{title}</h1>
+      <h1 className="min-w-0 flex-1 truncate text-lg font-bold">{title}</h1>
       {action}
     </div>
   );

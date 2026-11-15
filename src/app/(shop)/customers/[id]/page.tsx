@@ -81,11 +81,11 @@ export default function CustomerPage() {
       <div className="no-print fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-3xl gap-3 border-t border-line bg-white p-3 shadow-[0_-2px_8px_rgba(16,24,40,.06)]"
         style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
         {c.is_active
-          ? <button type="button" onClick={() => openEntry('existing', c.id)} data-testid="you-gave" className="flex min-h-13 flex-1 items-center justify-center gap-1 rounded-xl bg-due px-3 py-3 text-base font-bold text-white">{t('cust.gave')} ₹</button>
-          : <span className="flex min-h-13 flex-1 items-center justify-center rounded-xl bg-slate-200 px-3 py-3 font-bold text-muted">{t('cust.gave')} ₹</span>}
+          ? <button type="button" onClick={() => openEntry('existing', c.id)} data-testid="you-gave" className="flex min-h-12 flex-1 items-center justify-center gap-1 rounded-xl bg-due px-3 py-2.5 text-sm font-bold text-white">{t('cust.gave')} ₹</button>
+          : <span className="flex min-h-12 flex-1 items-center justify-center rounded-xl bg-slate-200 px-3 py-3 font-bold text-muted">{t('cust.gave')} ₹</span>}
         {c.balance_paise > 0
-          ? <Link href={`/customers/${c.id}/pay`} data-testid="you-got" className="flex min-h-13 flex-1 items-center justify-center gap-1 rounded-xl bg-got px-3 py-3 text-base font-bold text-white">{t('cust.got')} ₹</Link>
-          : <span className="flex min-h-13 flex-1 items-center justify-center rounded-xl bg-slate-200 px-3 py-3 font-bold text-muted">{t('cust.got')} ₹</span>}
+          ? <Link href={`/customers/${c.id}/pay`} data-testid="you-got" className="flex min-h-12 flex-1 items-center justify-center gap-1 rounded-xl bg-got px-3 py-2.5 text-sm font-bold text-white">{t('cust.got')} ₹</Link>
+          : <span className="flex min-h-12 flex-1 items-center justify-center rounded-xl bg-slate-200 px-3 py-3 font-bold text-muted">{t('cust.got')} ₹</span>}
       </div>
       <div className="mt-4 grid grid-cols-2 gap-3">
         <LinkButton href={`/customers/${c.id}/ledger`} variant="secondary"><Icon name="list" className="h-5 w-5" />{t('cust.history')}</LinkButton>

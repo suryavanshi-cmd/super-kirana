@@ -102,7 +102,7 @@ export function VoiceAssistant() {
   return (
     <div className="no-print">
       <button type="button" onClick={open ? () => setOpen(false) : openAndListen} aria-label={t('va.open')} data-testid="voice-anywhere"
-        className={`fixed ${path === '/store/catalog' ? 'bottom-24' : 'bottom-[calc(var(--fab-offset,0px)+1.25rem)]'} left-4 z-50 flex h-16 w-16 items-center justify-center rounded-full text-white shadow-xl ${listening ? 'animate-pulse bg-red-600' : 'bg-ink hover:bg-slate-800'}`}
+        className={`fixed ${path === '/store/catalog' ? 'bottom-24' : 'bottom-[calc(var(--fab-offset,0px)+1.25rem)]'} left-3 z-50 flex h-12 w-12 items-center justify-center rounded-full text-white shadow-xl ${listening ? 'animate-pulse bg-red-600' : 'bg-ink hover:bg-slate-800'}`}
         style={{ marginBottom: 'env(safe-area-inset-bottom)' }}>
         <Icon name="mic" className="h-8 w-8" />
       </button>

@@ -41,33 +41,33 @@ export default function HomePage() {
     <div>
       {/* You will give / You will get */}
       <section className={`${card} overflow-hidden`} data-testid="khata-summary">
-        <div className="grid grid-cols-2 divide-x divide-line py-3 text-center">
+        <div className="grid grid-cols-2 divide-x divide-line py-2.5 text-center">
           <div>
             <p className="text-sm text-muted">{t('home.willGive')}</p>
-            <p className="mt-0.5 text-xl font-bold text-got"><Money paise={give} short /></p>
+            <p className="mt-0.5 text-lg font-bold text-got"><Money paise={give} short /></p>
           </div>
           <div>
             <p className="text-sm text-muted">{t('home.willGet')}</p>
-            <p className={`mt-0.5 text-xl font-bold ${get > 0 ? 'text-due' : ''}`} data-testid="total-get"><Money paise={get} short /></p>
+            <p className={`mt-0.5 text-lg font-bold ${get > 0 ? 'text-due' : ''}`} data-testid="total-get"><Money paise={get} short /></p>
           </div>
         </div>
         <div className="grid grid-cols-2 border-t border-line text-xs font-bold uppercase tracking-wide">
-          <Link href={isOwner ? '/store' : '/reports'} className="flex min-h-11 items-center justify-center gap-1.5 text-brand-700"><Icon name="chart" className="h-4 w-4" />{t('home.viewReport')}</Link>
-          <Link href="/reports" className="flex min-h-11 items-center justify-center gap-1.5 border-l border-line text-brand-700"><Icon name="book" className="h-4 w-4" />{t('home.cashbook')}</Link>
+          <Link href={isOwner ? '/store' : '/reports'} className="flex min-h-10 items-center justify-center gap-1.5 text-brand-700"><Icon name="chart" className="h-4 w-4" />{t('home.viewReport')}</Link>
+          <Link href="/reports" className="flex min-h-10 items-center justify-center gap-1.5 border-l border-line text-brand-700"><Icon name="book" className="h-4 w-4" />{t('home.cashbook')}</Link>
         </div>
       </section>
 
       {/* Search · sort · PDF */}
       <div className="no-print mt-3 flex items-center gap-2">
-        <label className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-full bg-white px-4 shadow-[0_1px_3px_rgba(16,24,40,.08)]">
+        <label className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-white px-3.5 shadow-[0_1px_3px_rgba(16,24,40,.08)]">
           <Icon name="search" className="h-5 w-5 shrink-0 text-muted" />
           <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('home.searchCustomer')} aria-label={t('home.searchCustomer')}
             className="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted" data-testid="home-search" />
         </label>
         <button type="button" onClick={nextSort} aria-label={t('home.sort', { n: t(`home.sort.${sort}`) })} title={t(`home.sort.${sort}`)}
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink shadow-[0_1px_3px_rgba(16,24,40,.08)]" data-testid="home-sort"><Icon name="sort" className="h-5 w-5" /></button>
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-ink shadow-[0_1px_3px_rgba(16,24,40,.08)]" data-testid="home-sort"><Icon name="sort" className="h-5 w-5" /></button>
         <button type="button" onClick={() => window.print()} aria-label={t('home.pdf')}
-          className="flex h-11 items-center justify-center rounded-xl border-2 border-muted/60 bg-white px-2 text-xs font-bold text-muted">PDF</button>
+          className="flex h-10 items-center justify-center rounded-xl border-2 border-muted/50 bg-white px-2 text-[0.7rem] font-bold text-muted">PDF</button>
       </div>
       <p className="no-print mt-1 px-2 text-xs text-muted">{t('home.sortedBy', { n: t(`home.sort.${sort}`) })}</p>
 
@@ -81,11 +81,11 @@ export default function HomePage() {
           {rows.map((c) => (
             <li key={c.id}>
               <Link href={`/customers/${c.id}`} onPointerDown={() => prefetch(`${scope}customer:${c.id}`, () => rpc('get_customer', { p_shop_id: shop.id, p_customer_id: c.id }), true)}
-                className="flex min-h-[4.25rem] items-center gap-3 px-3 py-2 hover:bg-slate-50">
-                <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white ${avatar(c.name)}`} aria-hidden="true">{[...c.name][0]?.toUpperCase()}</span>
+                className="flex min-h-[3.75rem] items-center gap-3 px-3 py-2 hover:bg-slate-50">
+                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-bold text-white ${avatar(c.name)}`} aria-hidden="true">{[...c.name][0]?.toUpperCase()}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-base font-semibold">{c.name}</span>
-                  <span className="block truncate text-sm text-muted">{c.last_at ? relativeTime(c.last_at, t) : c.mobile ?? ''}</span>
+                  <span className="block truncate font-semibold">{c.name}</span>
+                  <span className="block truncate text-xs text-muted">{c.last_at ? relativeTime(c.last_at, t) : c.mobile ?? ''}</span>
                 </span>
                 <span className="shrink-0 text-right leading-tight">
                   <span className={`block text-base font-bold ${c.balance_paise > 0 ? 'text-due' : c.balance_paise < 0 ? 'text-got' : ''}`}><Money paise={Math.abs(c.balance_paise)} short /></span>
@@ -99,9 +99,9 @@ export default function HomePage() {
 
       {/* Add customer */}
       <button type="button" onClick={() => openEntry('new')} data-testid="home-new"
-        className="no-print fixed bottom-[calc(var(--fab-offset,0px)+1rem)] right-4 z-50 flex h-14 items-center gap-2 rounded-full bg-brand-600 px-5 text-base font-bold text-white shadow-xl"
+        className="no-print fixed bottom-[calc(var(--fab-offset,0px)+1rem)] right-3 z-50 flex h-12 items-center gap-2 rounded-full bg-brand-600 px-4 text-sm font-bold text-white shadow-xl"
         style={{ marginBottom: 'env(safe-area-inset-bottom)' }}>
-        <Icon name="userPlus" className="h-6 w-6" />{t('home.addCustomer')}
+        <Icon name="userPlus" className="h-5 w-5" />{t('home.addCustomer')}
       </button>
     </div>
   );

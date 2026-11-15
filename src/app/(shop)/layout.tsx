@@ -54,17 +54,17 @@ export default function ShopLayout({ children }: { children: ReactNode }) {
   return (
     <QuickEntryProvider>
     <div className="mx-auto min-h-dvh max-w-3xl bg-surface" style={{ '--fab-offset': bar ? '4.75rem' : '0px' } as CSSProperties}>
-      <header className="no-print sticky top-0 z-30 flex items-center gap-1 bg-brand-700 px-2 py-2 text-white shadow-md" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
+      <header className="no-print sticky top-0 z-30 flex items-center gap-1 bg-gradient-to-r from-brand-700 to-brand-600 px-1.5 py-1 text-white shadow-md" style={{ paddingTop: 'max(0.25rem, env(safe-area-inset-top))' }}>
         <button type="button" onClick={() => setMenu(true)} aria-label={t('nav.menu')} aria-expanded={menu} data-testid="menu-button"
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full hover:bg-white/10"><Icon name="menu" className="h-7 w-7" /></button>
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-white/10"><Icon name="menu" className="h-6 w-6" /></button>
         <Link href="/home" className="flex min-w-0 flex-1 items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-700"><Icon name="shop" className="h-5 w-5" /></span>
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/95 text-brand-700"><Icon name="shop" className="h-4 w-4" /></span>
           <span className="min-w-0">
-            <span className="block truncate text-lg font-bold leading-tight" data-testid="shop-name">{locale === 'mr-IN' ? shop.name_mr : shop.name_en}</span>
-            <span className="block truncate text-xs text-white/80">{ctx.display_name} · {t(`role.${shop.role}`)}</span>
+            <span className="block truncate text-base font-bold leading-tight" data-testid="shop-name">{locale === 'mr-IN' ? shop.name_mr : shop.name_en}</span>
+            <span className="block truncate text-[0.7rem] leading-tight text-white/85">{ctx.display_name} · {t(`role.${shop.role}`)}</span>
           </span>
         </Link>
-        <Link href="/settings" aria-label={t('nav.settings')} className="flex h-12 w-12 items-center justify-center rounded-full hover:bg-white/10"><Icon name="cog" /></Link>
+        <Link href="/settings" aria-label={t('nav.settings')} className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10"><Icon name="cog" className="h-5 w-5" /></Link>
       </header>
       {!online && (
         <div role="status" className="no-print flex items-start gap-2 bg-due-bg px-4 py-2 text-sm font-semibold text-due">
@@ -72,7 +72,7 @@ export default function ShopLayout({ children }: { children: ReactNode }) {
         </div>
       )}
       <DemoBanner />
-      <main className={`px-4 pt-4 ${bar ? 'pb-44' : 'pb-28'}`}>{children}</main>
+      <main className={`px-3 pt-3 ${bar ? 'pb-44' : 'pb-28'}`}>{children}</main>
       <QuickAdd />
       <VoiceAssistant />
       <BottomTabs onMore={() => setMenu(true)} />
